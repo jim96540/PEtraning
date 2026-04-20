@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>訓練記錄</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&display=swap');
+
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --surface2: #1a1a1a;
+    --border: #2a2a2a;
+    --accent: #c8ff00;
+    --accent2: #ff6b35;
+    --text: #e8e8e8;
+    --muted: #555;
+    --danger: #ff4444;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    padding: 0 0 80px 0;
+  }
+
+  /* HEADER */
+  .header {
+    padding: 28px 20px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+  .header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.4rem;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .header .date {
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-align: right;
+    line-height: 1.6;
+  }
+  .streak-badge {
+    background: var(--accent);
+    color: #000;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.05em;
+    padding: 3px 10px;
+    display: inline-block;
+    margin-top: 4px;
+  }
+
+  /* NAV TABS */
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    padding: 14px 18px;
+    font-size: 0.72rem;
+    color: var(--muted);
+    cursor: pointer;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+  }
+  .tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  /* VIEWS */
+  .view { display: none; padding: 20px; }
+  .view.active { display: block; }
+
+  /* SECTION TITLE */
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    margin-bottom: 14px;
+    margin-top: 24px;
+  }
+  .section-title:first-child { margin-top: 0; }
+
+  /* EXERCISE CARD */
+  .exercise-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    margin-bottom: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .exercise-card.active-card { border-color: var(--accent); }
+
+  .exercise-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    cursor: pointer;
+  }
+  .exercise-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.15rem;
+    letter-spacing: 0.06em;
+  }
+  .exercise-tag {
+    font-size: 0.6rem;
+    padding: 2px 7px;
+    border: 1px solid var(--muted);
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+  .exercise-tag.length { border-color: #4af; color: #4af; }
+  .exercise-tag.girth { border-color: var(--accent2); color: var(--accent2); }
+  .exercise-tag.health { border-color: #8f8; color: #8f8; }
+  .exercise-tag.warmup { border-color: #fa4; color: #fa4; }
+
+  .exercise-body {
+    display: none;
+    padding: 0 16px 16px;
+    border-top: 1px solid var(--border);
+  }
+  .exercise-body.open { display: block; }
+
+  /* TIMER */
+  .timer-display {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3rem;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    text-align: center;
+    padding: 16px 0 8px;
+    line-height: 1;
+  }
+  .timer-controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .btn {
+    flex: 1;
+    padding: 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn:active { opacity: 0.7; }
+  .btn.primary {
+    background: var(--accent);
+    color: #000;
+    border-color: var(--accent);
+    font-weight: 500;
+  }
+  .btn.danger {
+    border-color: var(--danger);
+    color: var(--danger);
+  }
+
+  /* INPUTS */
+  .input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .input-group label {
+    font-size: 0.62rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+  input[type="number"], input[type="text"], textarea, input[type="date"] {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    padding: 8px 10px;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input:focus, textarea:focus { border-color: var(--accent); }
+  textarea { resize: vertical; min-height: 60px; }
+
+  /* LOG BUTTON */
+  .log-btn {
+    width: 100%;
+    margin-top: 10px;
+    padding: 12px;
+    background: var(--surface2);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .log-btn:active { background: var(--accent); color: #000; }
+
+  /* STATS GRID */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 14px;
+  }
+  .stat-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 0.62rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    margin-top: 4px;
+  }
+
+  /* LOG LIST */
+  .log-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+  }
+  .log-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .log-item-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.06em;
+  }
+  .log-item-date {
+    font-size: 0.62rem;
+    color: var(--muted);
+  }
+  .log-item-details {
+    font-size: 0.68rem;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+  .log-item-note {
+    font-size: 0.68rem;
+    color: #888;
+    margin-top: 4px;
+    font-style: italic;
+  }
+  .delete-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 0.8rem;
+    padding: 2px 6px;
+  }
+  .delete-btn:hover { color: var(--danger); }
+
+  /* MEASUREMENTS */
+  .measurement-form {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .measurement-history {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .measurement-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr auto;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.72rem;
+    align-items: center;
+  }
+  .measurement-row:last-child { border-bottom: none; }
+  .measurement-row.header {
+    font-size: 0.6rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    background: var(--surface2);
+  }
+  .change-positive { color: var(--accent); }
+  .change-negative { color: var(--danger); }
+
+  /* CALENDAR */
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 16px;
+  }
+  .cal-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.62rem;
+    color: var(--muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    cursor: default;
+  }
+  .cal-day.has-log {
+    background: var(--accent);
+    color: #000;
+    font-weight: 500;
+  }
+  .cal-day.today {
+    border-color: var(--accent2);
+    color: var(--accent2);
+  }
+  .cal-day.today.has-log {
+    background: var(--accent2);
+    color: #fff;
+    border-color: var(--accent2);
+  }
+  .cal-header-day {
+    text-align: center;
+    font-size: 0.58rem;
+    color: var(--muted);
+    padding: 4px 0;
+    letter-spacing: 0.06em;
+  }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--accent);
+    color: #000;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.9rem;
+    letter-spacing: 0.1em;
+    padding: 10px 20px;
+    opacity: 0;
+    transition: all 0.3s;
+    pointer-events: none;
+    z-index: 999;
+    white-space: nowrap;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    z-index: 100;
+  }
+  .nav-item {
+    flex: 1;
+    padding: 12px 8px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 0.58rem;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    transition: color 0.2s;
+  }
+  .nav-item .nav-icon { font-size: 1.2rem; display: block; margin-bottom: 2px; }
+  .nav-item.active { color: var(--accent); }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+    font-size: 0.72rem;
+    line-height: 2;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>訓練記錄</h1>
+    <div style="font-size:0.65rem;color:var(--muted);margin-top:2px;" id="totalSessions">載入中...</div>
+  </div>
+  <div class="date">
+    <div id="todayDate"></div>
+    <div class="streak-badge" id="streakBadge">🔥 0天連續</div>
+  </div>
+</div>
+
+<div class="tabs" id="mainTabs">
+  <div class="tab active" onclick="switchTab('train')">訓練</div>
+  <div class="tab" onclick="switchTab('log')">紀錄</div>
+  <div class="tab" onclick="switchTab('measure')">尺寸</div>
+  <div class="tab" onclick="switchTab('calendar')">日曆</div>
+</div>
+
+<!-- ===== TRAIN VIEW ===== -->
+<div class="view active" id="view-train">
+
+  <!-- 熱身/收尾 -->
+  <div class="section-title">熱身 / 收尾</div>
+  <div class="exercise-card" id="card-warmup">
+    <div class="exercise-header" onclick="toggleCard('warmup')">
+      <div>
+        <div class="exercise-name">熱身 / 收尾</div>
+        <div style="font-size:0.62rem;color:var(--muted);margin-top:2px;">溫熱毛巾 5–6 分鐘</div>
+      </div>
+      <span class="exercise-tag warmup">WARMUP</span>
+    </div>
+    <div class="exercise-body" id="body-warmup">
+      <div class="timer-display" id="timer-warmup">00:00</div>
+      <div class="timer-controls">
+        <button class="btn primary" onclick="startTimer('warmup')">開始</button>
+        <button class="btn" onclick="pauseTimer('warmup')">暫停</button>
+        <button class="btn danger" onclick="resetTimer('warmup')">重置</button>
+      </div>
+      <div class="input-row">
+        <div class="input-group">
+          <label>類型</label>
+          <select id="warmup-type" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:0.8rem;padding:8px 10px;width:100%;outline:none;">
+            <option>熱身</option>
+            <option>收尾</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>時長（分鐘）</label>
+          <input type="number" id="warmup-duration" placeholder="5" min="1" max="30">
+        </div>
+      </div>
+      <div class="input-group" style="margin-bottom:8px;">
+        <label>備註</label>
+        <textarea id="warmup-note" placeholder="身體狀況、感受..."></textarea>
+      </div>
+      <button class="log-btn" onclick="logExercise('warmup')">記錄此項目</button>
+    </div>
+  </div>
+
+  <!-- 伸展 -->
+  <div class="section-title">長度訓練</div>
+  <div class="exercise-card" id="card-stretch">
+    <div class="exercise-header" onclick="toggleCard('stretch')">
+      <div>
+        <div class="exercise-name">伸展 Stretching</div>
+        <div style="font-size:0.62rem;color:var(--muted);margin-top:2px;">各方向拉伸，每向10秒</div>
+      </div>
+      <span class="exercise-tag length">LENGTH</span>
+    </div>
+    <div class="exercise-body" id="body-stretch">
+      <div class="timer-display" id="timer-stretch">00:00</div>
+      <div class="timer-controls">
+        <button class="btn primary" onclick="startTimer('stretch')">開始</button>
+        <button class="btn" onclick="pauseTimer('stretch')">暫停</button>
+        <button class="btn danger" onclick="resetTimer('stretch')">重置</button>
+      </div>
+      <div class="input-row">
+        <div class="input-group">
+          <label>組數</label>
+          <input type="number" id="stretch-sets" placeholder="3" min="1">
+        </div>
+        <div class="input-group">
+          <label>每組秒數</label>
+          <input type="number" id="stretch-secs" placeholder="10" min="5">
+        </div>
+      </div>
+      <div class="input-row">
+        <div class="input-group">
+          <label>方向</label>
+          <input type="text" id="stretch-dir" placeholder="上下左右、旋轉">
+        </div>
+        <div class="input-group">
+          <label>總時長（分鐘）</label>
+          <input type="number" id="stretch-duration" placeholder="5" min="1">
+        </div>
+      </div>
+      <div class="input-group" style="margin-bottom:8px;">
+        <label>備註 / 身體狀況</label>
+        <textarea id="stretch-note" placeholder="感受到的拉伸感、有無不適..."></textarea>
+      </div>
+      <button class="log-btn" onclick="logExercise('stretch')">記錄此項目</button>
+    </div>
+  </div>
+
+  <!-- Jelq -->
+  <div class="exercise-card" id="card-jelq">
+    <div class="exercise-header" onclick="toggleCard('jelq')">
+      <div>
+        <div class="exercise-name">Jelq</div>
+        <div style="font-size:0.62rem;color:var(--muted);margin-top:2px;">60–70% 勃起，每下2–3秒</div>
+      </div>
+      <span class="exercise-tag girth">GIRTH+LENGTH</span>
+    </div>
+    <div class="exercise-body" id="body-jelq">
+      <div class="timer-display" id="timer-jelq">00:00</div>
+      <div class="timer-controls">
+        <button class="btn primary" onclick="startTimer('jelq')">開始</button>
+        <button class="btn" onclick="pauseTimer('jelq')">暫停</button>
+        <button class="btn danger" onclick="resetTimer('jelq')">重置</button>
+      </div>
+      <div class="input-row">
+        <div class="input-group">
+          <label>組數</label>
+          <input type="number" id="jelq-sets" placeholder="3" min="1">
+        </div>
+        <div class="input-group">
+          <label>每組次數</label>
+          <input type="number" id="jelq-reps" placeholder="50" min="1">
+        </div>
+      </div>
+      <div class="input-row">
+        <div class="input-group">
+          <label>類型</label>
+          <select id="jelq-type" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:0.8rem;padding:8px 10px;width:100%;outline:none;">
+            <option>Wet Jelq</option>
+            <option>V Jelq</option>
+            <option>Side Jelq</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>總時長（分鐘）</label>
+          <input type="number" id="jelq-duration" placeholder="15" min="1">
+        </div>
+      </div>
+      <div class="input-group" style="margin-bottom:8px;">
+        <label>備註 / 身體狀況</label>
+        <textarea id="jelq-note" placeholder="勃起狀態、有無不適、感受..."></textarea>
+      </div>
+      <button class="log-btn" onclick="logExercise('jelq')">記錄此項目</button>
+    </div>
+  </div>
+
+  <!-- Kegel -->
+  <div class="section-title">健康訓練</div>
+  <div class="exercise-card" id="card-kegel">
+    <div class="exercise-header" onclick="toggleCard('kegel')">
+      <div>
+        <div class="exercise-name">Kegel</div>
+        <div style="font-size:0.62rem;color:var(--muted);margin-top:2px;">收縮骨盆底肌，強化勃起品質</div>
+      </div>
+      <span class="exercise-tag health">HEALTH</span>
+    </div>
+    <div class="exercise-body" id="body-kegel">
+      <div class="timer-display" id="timer-kegel">00:00</div>
+      <div class="timer-controls">
+        <button class="btn primary" onclick="startTimer('kegel')">開始</button>
+        <button class="btn" onclick="pauseTimer('kegel')">暫停</button>
+        <button class="btn danger" onclick="resetTimer('kegel')">重置</button>
+      </div>
+      <div class="input-row">
+        <div class="input-group">
+          <label>組數</label>
+          <input type="number" id="kegel-sets" placeholder="3" min="1">
+        </div>
+        <div class="input-group">
+          <label>每組次數</label>
+          <input type="number" id="kegel-reps" placeholder="10" min="1">
+        </div>
+      </div>
+      <div class="input-row">
+        <div class="input-group">
+          <label>收縮秒數</label>
+          <input type="number" id="kegel-hold" placeholder="3" min="1">
+        </div>
+        <div class="input-group">
+          <label>類型</label>
+          <select id="kegel-type" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:0.8rem;padding:8px 10px;width:100%;outline:none;">
+            <option>一般 Kegel</option>
+            <option>Reverse Kegel</option>
+          </select>
+        </div>
+      </div>
+      <div class="input-group" style="margin-bottom:8px;">
+        <label>備註</label>
+        <textarea id="kegel-note" placeholder="感受、強度..."></textarea>
+      </div>
+      <button class="log-btn" onclick="logExercise('kegel')">記錄此項目</button>
+    </div>
+  </div>
+
+  <!-- Clamping -->
+  <div class="section-title">進階訓練</div>
+  <div style="background:#1a0f00;border:1px solid #4a2800;padding:10px 14px;margin-bottom:10px;font-size:0.65rem;color:#fa4;line-height:1.7;letter-spacing:0.02em;">
+    ⚠️ Clamping 為進階技術，需數月 PE 基礎。若感到麻木、疼痛、變色請立即停止。
+  </div>
+  <div class="exercise-card" id="card-clamp">
+    <div class="exercise-header" onclick="toggleCard('clamp')">
+      <div>
+        <div class="exercise-name">Clamping</div>
+        <div style="font-size:0.62rem;color:var(--muted);margin-top:2px;">限制血液流出，擴張圍度</div>
+      </div>
+      <span class="exercise-tag girth">GIRTH</span>
+    </div>
+    <div class="exercise-body" id="body-clamp">
+      <div class="timer-display" id="timer-clamp">00:00</div>
+      <div class="timer-controls">
+        <button class="btn primary" onclick="startTimer('clamp')">開始</button>
+        <button class="btn" onclick="pauseTimer('clamp')">暫停</button>
+        <button class="btn danger" onclick="resetTimer('clamp')">重置</button>
+      </div>
+      <div class="input-row">
+        <div class="input-group">
+          <label>組數</label>
+          <input type="number" id="clamp-sets" placeholder="2" min="1">
+        </div>
+        <div class="input-group">
+          <label>每組分鐘</label>
+          <input type="number" id="clamp-mins" placeholder="10" min="1" max="15">
+        </div>
+      </div>
+      <div class="input-group" style="margin-bottom:8px;">
+        <label>備註 / 身體反應</label>
+        <textarea id="clamp-note" placeholder="顏色正常？有無疼痛麻木？血流感受..."></textarea>
+      </div>
+      <button class="log-btn" onclick="logExercise('clamp')">記錄此項目</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== LOG VIEW ===== -->
+<div class="view" id="view-log">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-value" id="stat-total">0</div>
+      <div class="stat-label">總訓練次數</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="stat-streak">0</div>
+      <div class="stat-label">連續天數</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="stat-thisweek">0</div>
+      <div class="stat-label">本週次數</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="stat-thismonth">0</div>
+      <div class="stat-label">本月次數</div>
+    </div>
+  </div>
+
+  <div class="section-title">所有紀錄</div>
+  <div id="logList">
+    <div class="empty-state">還沒有訓練記錄<br>回到「訓練」頁面開始第一次記錄</div>
+  </div>
+</div>
+
+<!-- ===== MEASURE VIEW ===== -->
+<div class="view" id="view-measure">
+  <div class="section-title">新增測量</div>
+  <div class="measurement-form">
+    <div class="input-row">
+      <div class="input-group">
+        <label>日期</label>
+        <input type="date" id="m-date">
+      </div>
+      <div class="input-group">
+        <label>BPEL 長度（cm）</label>
+        <input type="number" id="m-bpel" placeholder="0.0" step="0.1" min="0">
+      </div>
+    </div>
+    <div class="input-row">
+      <div class="input-group">
+        <label>NBPEL 長度（cm）</label>
+        <input type="number" id="m-nbpel" placeholder="0.0" step="0.1" min="0">
+      </div>
+      <div class="input-group">
+        <label>圍度 EG（cm）</label>
+        <input type="number" id="m-eg" placeholder="0.0" step="0.1" min="0">
+      </div>
+    </div>
+    <div class="input-group" style="margin-bottom:10px;">
+      <label>備註</label>
+      <input type="text" id="m-note" placeholder="測量時間、狀態...">
+    </div>
+    <button class="log-btn" onclick="saveMeasurement()">儲存測量</button>
+  </div>
+
+  <div class="section-title">測量歷史</div>
+  <div class="measurement-history">
+    <div class="measurement-row header">
+      <div>日期</div>
+      <div>BPEL</div>
+      <div>NBPEL</div>
+      <div>EG</div>
+      <div></div>
+    </div>
+    <div id="measureList">
+      <div class="empty-state">尚無測量記錄</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CALENDAR VIEW ===== -->
+<div class="view" id="view-calendar">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+    <button class="btn" style="flex:0;padding:8px 14px;" onclick="changeMonth(-1)">◀</button>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:0.1em;" id="calMonthLabel"></div>
+    <button class="btn" style="flex:0;padding:8px 14px;" onclick="changeMonth(1)">▶</button>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px;">
+    <div class="cal-header-day">日</div>
+    <div class="cal-header-day">一</div>
+    <div class="cal-header-day">二</div>
+    <div class="cal-header-day">三</div>
+    <div class="cal-header-day">四</div>
+    <div class="cal-header-day">五</div>
+    <div class="cal-header-day">六</div>
+  </div>
+  <div class="calendar-grid" id="calendarGrid"></div>
+
+  <div class="section-title">本月統計</div>
+  <div class="stats-grid" id="calStats"></div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== STATE =====
+let logs = JSON.parse(localStorage.getItem('pe-logs') || '[]');
+let measurements = JSON.parse(localStorage.getItem('pe-measurements') || '[]');
+let timers = {};
+let calMonth = new Date();
+
+// ===== INIT =====
+document.getElementById('todayDate').textContent = new Date().toLocaleDateString('zh-TW', {year:'numeric',month:'long',day:'numeric'});
+document.getElementById('m-date').value = new Date().toISOString().split('T')[0];
+updateAll();
+
+// ===== TABS =====
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    const names = ['train','log','measure','calendar'];
+    t.classList.toggle('active', names[i] === name);
+  });
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  if (name === 'log') renderLogs();
+  if (name === 'measure') renderMeasurements();
+  if (name === 'calendar') renderCalendar();
+}
+
+// ===== CARD TOGGLE =====
+function toggleCard(id) {
+  const body = document.getElementById('body-'+id);
+  const card = document.getElementById('card-'+id);
+  const isOpen = body.classList.contains('open');
+  document.querySelectorAll('.exercise-body').forEach(b => b.classList.remove('open'));
+  document.querySelectorAll('.exercise-card').forEach(c => c.classList.remove('active-card'));
+  if (!isOpen) {
+    body.classList.add('open');
+    card.classList.add('active-card');
+  }
+}
+
+// ===== TIMER =====
+function startTimer(id) {
+  if (!timers[id]) timers[id] = { seconds: 0, interval: null };
+  if (timers[id].interval) return;
+  timers[id].interval = setInterval(() => {
+    timers[id].seconds++;
+    updateTimerDisplay(id);
+  }, 1000);
+}
+function pauseTimer(id) {
+  if (timers[id]?.interval) {
+    clearInterval(timers[id].interval);
+    timers[id].interval = null;
+  }
+}
+function resetTimer(id) {
+  pauseTimer(id);
+  if (timers[id]) timers[id].seconds = 0;
+  updateTimerDisplay(id);
+}
+function updateTimerDisplay(id) {
+  const s = timers[id]?.seconds || 0;
+  const m = Math.floor(s/60).toString().padStart(2,'0');
+  const sec = (s%60).toString().padStart(2,'0');
+  document.getElementById('timer-'+id).textContent = m+':'+sec;
+}
+
+// ===== LOG EXERCISE =====
+function logExercise(type) {
+  const now = new Date();
+  const entry = {
+    id: Date.now(),
+    type,
+    date: now.toISOString(),
+    dateStr: now.toLocaleDateString('zh-TW'),
+  };
+
+  const timerSecs = timers[type]?.seconds || 0;
+
+  if (type === 'warmup') {
+    entry.subtype = document.getElementById('warmup-type').value;
+    entry.duration = document.getElementById('warmup-duration').value || Math.round(timerSecs/60);
+    entry.note = document.getElementById('warmup-note').value;
+    entry.display = `${entry.subtype} · ${entry.duration} 分鐘`;
+  } else if (type === 'stretch') {
+    entry.sets = document.getElementById('stretch-sets').value;
+    entry.secs = document.getElementById('stretch-secs').value;
+    entry.dir = document.getElementById('stretch-dir').value;
+    entry.duration = document.getElementById('stretch-duration').value || Math.round(timerSecs/60);
+    entry.note = document.getElementById('stretch-note').value;
+    entry.display = `${entry.sets||'?'}組 × ${entry.secs||'?'}秒 · ${entry.dir||'多方向'} · ${entry.duration}分`;
+  } else if (type === 'jelq') {
+    entry.sets = document.getElementById('jelq-sets').value;
+    entry.reps = document.getElementById('jelq-reps').value;
+    entry.subtype = document.getElementById('jelq-type').value;
+    entry.duration = document.getElementById('jelq-duration').value || Math.round(timerSecs/60);
+    entry.note = document.getElementById('jelq-note').value;
+    entry.display = `${entry.subtype} · ${entry.sets||'?'}組 × ${entry.reps||'?'}下 · ${entry.duration}分`;
+  } else if (type === 'kegel') {
+    entry.sets = document.getElementById('kegel-sets').value;
+    entry.reps = document.getElementById('kegel-reps').value;
+    entry.hold = document.getElementById('kegel-hold').value;
+    entry.subtype = document.getElementById('kegel-type').value;
+    entry.note = document.getElementById('kegel-note').value;
+    entry.display = `${entry.subtype} · ${entry.sets||'?'}組 × ${entry.reps||'?'}下 · 收縮${entry.hold||'?'}秒`;
+  } else if (type === 'clamp') {
+    entry.sets = document.getElementById('clamp-sets').value;
+    entry.mins = document.getElementById('clamp-mins').value;
+    entry.note = document.getElementById('clamp-note').value;
+    entry.duration = (parseInt(entry.sets||1) * parseInt(entry.mins||10));
+    entry.display = `${entry.sets||'?'}組 × ${entry.mins||'?'}分鐘`;
+  }
+
+  logs.unshift(entry);
+  localStorage.setItem('pe-logs', JSON.stringify(logs));
+  resetTimer(type);
+  updateAll();
+  showToast('✓ 已記錄');
+}
+
+// ===== MEASUREMENT =====
+function saveMeasurement() {
+  const m = {
+    id: Date.now(),
+    date: document.getElementById('m-date').value,
+    bpel: parseFloat(document.getElementById('m-bpel').value) || null,
+    nbpel: parseFloat(document.getElementById('m-nbpel').value) || null,
+    eg: parseFloat(document.getElementById('m-eg').value) || null,
+    note: document.getElementById('m-note').value,
+  };
+  if (!m.bpel && !m.nbpel && !m.eg) { showToast('請輸入至少一項數據'); return; }
+  measurements.unshift(m);
+  localStorage.setItem('pe-measurements', JSON.stringify(measurements));
+  renderMeasurements();
+  showToast('✓ 測量已儲存');
+}
+
+function deleteMeasurement(id) {
+  measurements = measurements.filter(m => m.id !== id);
+  localStorage.setItem('pe-measurements', JSON.stringify(measurements));
+  renderMeasurements();
+}
+
+function renderMeasurements() {
+  const container = document.getElementById('measureList');
+  if (!measurements.length) {
+    container.innerHTML = '<div class="empty-state">尚無測量記錄</div>';
+    return;
+  }
+  container.innerHTML = measurements.map((m, i) => {
+    const prev = measurements[i+1];
+    const bpelChange = (prev?.bpel && m.bpel) ? (m.bpel - prev.bpel).toFixed(1) : null;
+    const egChange = (prev?.eg && m.eg) ? (m.eg - prev.eg).toFixed(1) : null;
+    const bpelClass = bpelChange > 0 ? 'change-positive' : bpelChange < 0 ? 'change-negative' : '';
+    const egClass = egChange > 0 ? 'change-positive' : egChange < 0 ? 'change-negative' : '';
+    return `<div class="measurement-row">
+      <div style="font-size:0.65rem">${m.date}</div>
+      <div class="${bpelClass}">${m.bpel ? m.bpel+'cm'+(bpelChange!==null?`<span style="font-size:0.58rem"> ${bpelChange>0?'+':''}${bpelChange}</span>`:'') : '—'}</div>
+      <div>${m.nbpel ? m.nbpel+'cm' : '—'}</div>
+      <div class="${egClass}">${m.eg ? m.eg+'cm'+(egChange!==null?`<span style="font-size:0.58rem"> ${egChange>0?'+':''}${egChange}</span>`:'') : '—'}</div>
+      <button class="delete-btn" onclick="deleteMeasurement(${m.id})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+// ===== RENDER LOGS =====
+const typeNames = { warmup:'熱身/收尾', stretch:'伸展', jelq:'Jelq', kegel:'Kegel', clamp:'Clamping' };
+const typeColors = { warmup:'#fa4', stretch:'#4af', jelq:'var(--accent2)', kegel:'#8f8', clamp:'var(--accent)' };
+
+function renderLogs() {
+  const container = document.getElementById('logList');
+  if (!logs.length) {
+    container.innerHTML = '<div class="empty-state">還沒有訓練記錄<br>回到「訓練」頁面開始第一次記錄</div>';
+    return;
+  }
+  container.innerHTML = logs.map(l => `
+    <div class="log-item" style="border-left-color:${typeColors[l.type]}">
+      <div class="log-item-header">
+        <span class="log-item-name">${typeNames[l.type]}</span>
+        <span class="log-item-date">${l.dateStr} <button class="delete-btn" onclick="deleteLog(${l.id})">✕</button></span>
+      </div>
+      <div class="log-item-details">${l.display || ''}</div>
+      ${l.note ? `<div class="log-item-note">${l.note}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+function deleteLog(id) {
+  logs = logs.filter(l => l.id !== id);
+  localStorage.setItem('pe-logs', JSON.stringify(logs));
+  renderLogs();
+  updateAll();
+}
+
+// ===== CALENDAR =====
+function renderCalendar() {
+  const y = calMonth.getFullYear(), m = calMonth.getMonth();
+  document.getElementById('calMonthLabel').textContent = `${y}年 ${m+1}月`;
+
+  const logDates = new Set(logs.map(l => l.date.split('T')[0]));
+  const today = new Date().toISOString().split('T')[0];
+  const firstDay = new Date(y, m, 1).getDay();
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+
+  let html = '';
+  for (let i = 0; i < firstDay; i++) html += '<div class="cal-day"></div>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const hasLog = logDates.has(dateStr);
+    const isToday = dateStr === today;
+    html += `<div class="cal-day${hasLog?' has-log':''}${isToday?' today':''}">${d}</div>`;
+  }
+  document.getElementById('calendarGrid').innerHTML = html;
+
+  // Month stats
+  const monthLogs = logs.filter(l => {
+    const d = new Date(l.date);
+    return d.getFullYear()===y && d.getMonth()===m;
+  });
+  const activeDays = new Set(monthLogs.map(l=>l.date.split('T')[0])).size;
+  document.getElementById('calStats').innerHTML = `
+    <div class="stat-card"><div class="stat-value">${activeDays}</div><div class="stat-label">活躍天數</div></div>
+    <div class="stat-card"><div class="stat-value">${monthLogs.length}</div><div class="stat-label">總記錄筆數</div></div>
+  `;
+}
+
+function changeMonth(dir) {
+  calMonth.setMonth(calMonth.getMonth() + dir);
+  renderCalendar();
+}
+
+// ===== STATS =====
+function calcStreak() {
+  const dates = [...new Set(logs.map(l => l.date.split('T')[0]))].sort().reverse();
+  if (!dates.length) return 0;
+  let streak = 0;
+  let check = new Date(); check.setHours(0,0,0,0);
+  for (const d of dates) {
+    const dd = new Date(d); dd.setHours(0,0,0,0);
+    const diff = Math.round((check - dd) / 86400000);
+    if (diff === 0 || diff === 1) { streak++; check = dd; }
+    else break;
+  }
+  return streak;
+}
+
+function updateAll() {
+  const streak = calcStreak();
+  document.getElementById('streakBadge').textContent = `🔥 ${streak}天連續`;
+  document.getElementById('totalSessions').textContent = `累計 ${logs.length} 筆記錄`;
+
+  // Stats page
+  document.getElementById('stat-total').textContent = logs.length;
+  document.getElementById('stat-streak').textContent = streak;
+
+  const now = new Date();
+  const weekAgo = new Date(now - 7*86400000);
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  document.getElementById('stat-thisweek').textContent = logs.filter(l => new Date(l.date) >= weekAgo).length;
+  document.getElementById('stat-thismonth').textContent = logs.filter(l => new Date(l.date) >= monthStart).length;
+}
+
+// ===== TOAST =====
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+</script>
+</body>
+</html>
