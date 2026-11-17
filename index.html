@@ -1,1089 +1,818 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0b0c">
+<meta name="color-scheme" content="dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="訓練記錄">
+<meta name="robots" content="noindex,nofollow">
 <title>訓練記錄</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  html { background: #0a0a0a; }
-  :root {
-    --bg: #0a0a0a;
-    --surface: #111111;
-    --surface2: #1a1a1a;
-    --border: #2a2a2a;
-    --accent: #c8ff00;
-    --accent2: #ff6b35;
-    --text: #e8e8e8;
-    --muted: #555;
-    --danger: #ff4444;
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Mono', monospace;
-    min-height: 100vh;
-    padding: 0 0 80px 0;
-  }
-
-  /* HEADER */
-  .header {
-    padding: 28px 20px 16px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-  }
-  .header h1 {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 2.4rem;
-    letter-spacing: 0.08em;
-    color: var(--accent);
-    line-height: 1;
-  }
-  .header .date {
-    font-size: 0.7rem;
-    color: var(--muted);
-    text-align: right;
-    line-height: 1.6;
-  }
-  .streak-badge {
-    background: var(--accent);
-    color: #000;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1rem;
-    letter-spacing: 0.05em;
-    padding: 3px 10px;
-    display: inline-block;
-    margin-top: 4px;
-  }
-
-  /* NAV TABS */
-  .tabs {
-    display: flex;
-    border-bottom: 1px solid var(--border);
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-  .tabs::-webkit-scrollbar { display: none; }
-  .tab {
-    padding: 14px 18px;
-    font-size: 0.72rem;
-    color: var(--muted);
-    cursor: pointer;
-    white-space: nowrap;
-    border-bottom: 2px solid transparent;
-    transition: all 0.2s;
-    letter-spacing: 0.05em;
-  }
-  .tab.active {
-    color: var(--accent);
-    border-bottom-color: var(--accent);
-  }
-
-  /* VIEWS */
-  .view { display: none; padding: 20px; }
-  .view.active { display: block; }
-
-  /* SECTION TITLE */
-  .section-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.1rem;
-    letter-spacing: 0.12em;
-    color: var(--muted);
-    margin-bottom: 14px;
-    margin-top: 24px;
-  }
-  .section-title:first-child { margin-top: 0; }
-
-  /* EXERCISE CARD */
-  .exercise-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    margin-bottom: 10px;
-    overflow: hidden;
-    transition: border-color 0.2s;
-  }
-  .exercise-card.active-card { border-color: var(--accent); }
-
-  .exercise-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 16px;
-    cursor: pointer;
-  }
-  .exercise-name {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.15rem;
-    letter-spacing: 0.06em;
-  }
-  .exercise-tag {
-    font-size: 0.6rem;
-    padding: 2px 7px;
-    border: 1px solid var(--muted);
-    color: var(--muted);
-    letter-spacing: 0.08em;
-  }
-  .exercise-tag.length { border-color: #4af; color: #4af; }
-  .exercise-tag.girth { border-color: var(--accent2); color: var(--accent2); }
-  .exercise-tag.health { border-color: #8f8; color: #8f8; }
-  .exercise-tag.warmup { border-color: #fa4; color: #fa4; }
-
-  .exercise-body {
-    display: none;
-    padding: 0 16px 16px;
-    border-top: 1px solid var(--border);
-  }
-  .exercise-body.open { display: block; }
-
-  /* TIMER */
-  .timer-display {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 3rem;
-    letter-spacing: 0.1em;
-    color: var(--accent);
-    text-align: center;
-    padding: 16px 0 8px;
-    line-height: 1;
-  }
-  .timer-controls {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 14px;
-  }
-  .btn {
-    flex: 1;
-    padding: 10px;
-    font-family: 'DM Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.06em;
-    border: 1px solid var(--border);
-    background: var(--surface2);
-    color: var(--text);
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .btn:active { opacity: 0.7; }
-  .btn.primary {
-    background: var(--accent);
-    color: #000;
-    border-color: var(--accent);
-    font-weight: 500;
-  }
-  .btn.danger {
-    border-color: var(--danger);
-    color: var(--danger);
-  }
-
-  /* INPUTS */
-  .input-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 8px;
-  }
-  .input-group {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  .input-group label {
-    font-size: 0.62rem;
-    color: var(--muted);
-    letter-spacing: 0.08em;
-  }
-  input[type="number"], input[type="text"], textarea, input[type="date"] {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-family: 'DM Mono', monospace;
-    font-size: 0.8rem;
-    padding: 8px 10px;
-    width: 100%;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  input:focus, textarea:focus { border-color: var(--accent); }
-  textarea { resize: vertical; min-height: 60px; }
-
-  /* LOG BUTTON */
-  .log-btn {
-    width: 100%;
-    margin-top: 10px;
-    padding: 12px;
-    background: var(--surface2);
-    border: 1px solid var(--accent);
-    color: var(--accent);
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1rem;
-    letter-spacing: 0.1em;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .log-btn:active { background: var(--accent); color: #000; }
-
-  /* STATS GRID */
-  .stats-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 20px;
-  }
-  .stat-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    padding: 14px;
-  }
-  .stat-value {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 2rem;
-    color: var(--accent);
-    line-height: 1;
-  }
-  .stat-label {
-    font-size: 0.62rem;
-    color: var(--muted);
-    letter-spacing: 0.08em;
-    margin-top: 4px;
-  }
-
-  /* LOG LIST */
-  .log-item {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-left: 3px solid var(--accent);
-    padding: 12px 14px;
-    margin-bottom: 8px;
-  }
-  .log-item-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 6px;
-  }
-  .log-item-name {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1rem;
-    letter-spacing: 0.06em;
-  }
-  .log-item-date {
-    font-size: 0.62rem;
-    color: var(--muted);
-  }
-  .log-item-details {
-    font-size: 0.68rem;
-    color: var(--muted);
-    line-height: 1.8;
-  }
-  .log-item-note {
-    font-size: 0.68rem;
-    color: #888;
-    margin-top: 4px;
-    font-style: italic;
-  }
-  .delete-btn {
-    background: none;
-    border: none;
-    color: var(--muted);
-    cursor: pointer;
-    font-size: 0.8rem;
-    padding: 2px 6px;
-  }
-  .delete-btn:hover { color: var(--danger); }
-
-  /* MEASUREMENTS */
-  .measurement-form {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    padding: 16px;
-    margin-bottom: 16px;
-  }
-  .measurement-history {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    overflow: hidden;
-  }
-  .measurement-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr auto;
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--border);
-    font-size: 0.72rem;
-    align-items: center;
-  }
-  .measurement-row:last-child { border-bottom: none; }
-  .measurement-row.header {
-    font-size: 0.6rem;
-    color: var(--muted);
-    letter-spacing: 0.08em;
-    background: var(--surface2);
-  }
-  .change-positive { color: var(--accent); }
-  .change-negative { color: var(--danger); }
-
-  /* CALENDAR */
-  .calendar-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 4px;
-    margin-bottom: 16px;
-  }
-  .cal-day {
-    aspect-ratio: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.62rem;
-    color: var(--muted);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    cursor: default;
-  }
-  .cal-day.has-log {
-    background: var(--accent);
-    color: #000;
-    font-weight: 500;
-  }
-  .cal-day.today {
-    border-color: var(--accent2);
-    color: var(--accent2);
-  }
-  .cal-day.today.has-log {
-    background: var(--accent2);
-    color: #fff;
-    border-color: var(--accent2);
-  }
-  .cal-header-day {
-    text-align: center;
-    font-size: 0.58rem;
-    color: var(--muted);
-    padding: 4px 0;
-    letter-spacing: 0.06em;
-  }
-
-  /* TOAST */
-  .toast {
-    position: fixed;
-    bottom: 90px;
-    left: 50%;
-    transform: translateX(-50%) translateY(20px);
-    background: var(--accent);
-    color: #000;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 0.9rem;
-    letter-spacing: 0.1em;
-    padding: 10px 20px;
-    opacity: 0;
-    transition: all 0.3s;
-    pointer-events: none;
-    z-index: 999;
-    white-space: nowrap;
-  }
-  .toast.show {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-
-  /* BOTTOM NAV */
-  .bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: var(--surface);
-    border-top: 1px solid var(--border);
-    display: flex;
-    z-index: 100;
-  }
-  .nav-item {
-    flex: 1;
-    padding: 12px 8px;
-    text-align: center;
-    cursor: pointer;
-    font-size: 0.58rem;
-    color: var(--muted);
-    letter-spacing: 0.06em;
-    transition: color 0.2s;
-  }
-  .nav-item .nav-icon { font-size: 1.2rem; display: block; margin-bottom: 2px; }
-  .nav-item.active { color: var(--accent); }
-
-  .empty-state {
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--muted);
-    font-size: 0.72rem;
-    line-height: 2;
-  }
+:root{
+  --bg:#0b0b0c;--s1:#141416;--s2:#1c1c1f;--line:#2a2a2e;--tx:#ececee;--mu:#8a8a92;
+  --ac:#c8ff00;--warn:#ffb020;--bad:#ff5a4f;--ok:#4ade80;--blue:#5ab0ff;--org:#ff7a3d;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#0b0b0c;color:#ececee}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
+  font-size:15px;line-height:1.5;padding-bottom:calc(80px + env(safe-area-inset-bottom));-webkit-tap-highlight-color:transparent}
+.num{font-variant-numeric:tabular-nums;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+header{padding:calc(16px + env(safe-area-inset-top)) 16px 14px;border-bottom:1px solid var(--line);
+  display:flex;justify-content:space-between;align-items:flex-end;gap:12px;max-width:640px;margin:0 auto}
+h1{font-size:22px;font-weight:800;letter-spacing:.04em}
+.sub{font-size:12px;color:var(--mu)}
+.pill{font-size:12px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);white-space:nowrap}
+.pill.ok{color:var(--ok);border-color:#1f5f3a}.pill.warn{color:var(--warn);border-color:#6b4a0a}.pill.bad{color:var(--bad);border-color:#6b211c}
+main{padding:16px;max-width:640px;margin:0 auto}
+.view{display:none}.view.on{display:block}
+.h2{font-size:12px;color:var(--mu);letter-spacing:.12em;margin:24px 0 10px}
+.h2:first-child{margin-top:0}
+.flow{font-size:12px;color:var(--mu);margin:-4px 0 12px}
+.banner{border-radius:10px;padding:12px 14px;font-size:13px;margin-bottom:10px;border:1px solid}
+.banner.bad{background:#2a0f0d;border-color:#6b211c;color:#ffb4ad}
+.banner.warn{background:#2a1f08;border-color:#6b4a0a;color:#ffd58a}
+.banner.info{background:var(--s1);border-color:var(--line);color:var(--mu)}
+.banner button{margin-top:8px;padding:6px 12px;border-radius:6px;border:1px solid currentColor;background:transparent;color:inherit;font-size:12px}
+.card{background:var(--s1);border:1px solid var(--line);border-radius:12px;margin-bottom:10px;overflow:hidden}
+.card.open{border-color:#44444a}
+.ch{display:flex;justify-content:space-between;align-items:center;padding:14px;cursor:pointer;gap:10px}
+.ct{font-weight:700;font-size:16px}
+.cd{font-size:12px;color:var(--mu)}
+.run-dot{display:none;width:8px;height:8px;border-radius:50%;background:var(--ac);margin-right:6px}
+.card.running .run-dot{display:inline-block}
+.tag{font-size:10px;letter-spacing:.08em;padding:2px 7px;border-radius:4px;border:1px solid currentColor;white-space:nowrap}
+.cb{display:none;padding:0 14px 14px;border-top:1px solid var(--line)}
+.card.open .cb{display:block}
+.timer{font-size:54px;font-weight:700;text-align:center;padding:16px 0 4px;color:var(--ac);line-height:1}
+.timer.low{color:var(--bad)}.timer.done{color:var(--org)}
+.phase{text-align:center;font-size:13px;color:var(--mu);min-height:20px;margin-bottom:10px}
+.phase.hold{color:var(--ac);font-weight:700}
+.stepper{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:10px}
+.stepper span{min-width:56px;text-align:center}
+.stepper .btn{flex:0 0 auto;padding:6px 12px;font-size:13px}
+.row{display:flex;gap:8px;margin-bottom:10px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.f{display:flex;flex-direction:column;gap:4px;margin-bottom:8px}
+.grid .f{margin-bottom:0}
+.f label{font-size:11px;color:var(--mu)}
+input,select,textarea{background:var(--s2);border:1px solid var(--line);color:var(--tx);border-radius:8px;
+  padding:10px;font:inherit;font-size:16px;width:100%;outline:none;-webkit-appearance:none;appearance:none}
+input:focus,select:focus,textarea:focus{border-color:var(--ac)}
+textarea{min-height:56px;resize:vertical}
+button{font:inherit;cursor:pointer}
+.btn{flex:1;padding:11px;border-radius:8px;border:1px solid var(--line);background:var(--s2);color:var(--tx);font-size:14px}
+.btn.pri{background:var(--ac);color:#000;border-color:var(--ac);font-weight:700}
+.btn.ghost{background:transparent}
+.btn.line{background:transparent;border-color:var(--ac);color:var(--ac);font-weight:700}
+.btn.bad{color:var(--bad);border-color:#6b211c;background:transparent}
+.btn.wide{display:block;width:100%;margin-top:4px}
+.btn:active{opacity:.7}
+.note{font-size:12px;color:var(--mu);margin:0 0 10px;line-height:1.6}
+.note.warn{color:#ffd58a}
+.big{display:block;width:100%;padding:15px;border-radius:12px;border:1px solid var(--ac);background:var(--ac);color:#000;font-weight:800;font-size:16px;margin-top:14px}
+.item{background:var(--s1);border:1px solid var(--line);border-left:3px solid var(--ac);border-radius:8px;padding:10px 12px;margin-bottom:8px}
+.ih{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.in{font-weight:700;font-size:14px}
+.it{font-size:12px;color:var(--mu)}
+.id{font-size:13px;color:#bdbdc4;margin-top:2px}
+.inote{font-size:12px;color:var(--mu);margin-top:4px;white-space:pre-wrap}
+.x{background:none;border:none;color:var(--mu);font-size:14px;padding:2px 6px}
+.x:hover{color:var(--bad)}
+.day{margin-bottom:16px}
+.dh{display:flex;justify-content:space-between;font-size:12px;color:var(--mu);margin-bottom:6px}
+.chk{font-size:12px;padding:8px 12px;border-radius:8px;margin-bottom:8px;border:1px solid var(--line);background:var(--s1)}
+.chk.ok{color:var(--ok)}.chk.warn{color:var(--warn);border-color:#6b4a0a}.chk.bad{color:var(--bad);border-color:#6b211c}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.stat{background:var(--s1);border:1px solid var(--line);border-radius:10px;padding:12px}
+.sv{font-size:26px;font-weight:800;color:var(--ac);line-height:1.1}
+.sl{font-size:11px;color:var(--mu);margin-top:2px}
+.calnav{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.calnav .btn{flex:0 0 auto;padding:6px 14px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cw{text-align:center;font-size:11px;color:var(--mu);padding:2px 0}
+.cday{aspect-ratio:1;border-radius:6px;background:var(--s1);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--mu);position:relative}
+.cday.tr{background:#2b3a05;color:var(--ac);border-color:#3f5508}
+.cday.td{border-color:var(--tx);color:var(--tx)}
+.cday.fl::after{content:"";position:absolute;top:4px;right:4px;width:6px;height:6px;border-radius:50%;background:var(--bad)}
+.cday.e{background:transparent;border-color:transparent}
+.legend{display:flex;gap:14px;font-size:11px;color:var(--mu);margin:8px 0 0}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.box{background:var(--s1);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px}
+.chart svg{width:100%;height:auto;display:block}
+.mt{width:100%;border-collapse:collapse;font-size:13px}
+.mt th{font-size:11px;color:var(--mu);font-weight:400;text-align:left;padding:6px 4px;border-bottom:1px solid var(--line)}
+.mt td{padding:8px 4px;border-bottom:1px solid var(--line)}
+.up{color:var(--ok);font-size:11px}.down{color:var(--bad);font-size:11px}
+.empty{text-align:center;color:var(--mu);font-size:13px;padding:28px 10px}
+nav{position:fixed;left:0;right:0;bottom:0;background:#111113;border-top:1px solid var(--line);display:flex;
+  padding-bottom:env(safe-area-inset-bottom);z-index:20}
+nav button{flex:1;background:none;border:none;color:var(--mu);padding:10px 4px 8px;font-size:11px}
+nav button b{display:block;font-size:19px;font-weight:400;line-height:1.2}
+nav button.on{color:var(--ac)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:flex-end;justify-content:center;z-index:40}
+.modal.on{display:flex}
+.sheet{background:var(--s1);border:1px solid var(--line);border-radius:16px 16px 0 0;width:100%;max-width:640px;
+  max-height:88vh;overflow:auto;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
+.sheet h3{font-size:18px;margin-bottom:4px}
+.opt{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px;background:var(--s2);cursor:pointer}
+.opt input{width:20px;height:20px;flex:0 0 auto;accent-color:var(--bad);-webkit-appearance:checkbox;appearance:auto;padding:0}
+.opt.sev2 span::after{content:" ・需就醫";color:var(--bad);font-size:11px}
+.result{border-radius:10px;padding:12px;font-size:13px;margin:10px 0;display:none}
+.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(10px);
+  background:var(--ac);color:#000;font-weight:700;font-size:14px;padding:9px 18px;border-radius:999px;opacity:0;transition:.25s;pointer-events:none;z-index:60;white-space:nowrap}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+ul.safe{padding-left:18px;font-size:13px;color:#bdbdc4;line-height:1.8}
 </style>
 </head>
 <body>
 
-<div class="header">
+<header>
   <div>
     <h1>訓練記錄</h1>
-    <div style="font-size:0.65rem;color:var(--muted);margin-top:2px;" id="totalSessions">載入中...</div>
+    <div class="sub" id="hdrDate"></div>
   </div>
-  <div class="date">
-    <div id="todayDate"></div>
-    <div class="streak-badge" id="streakBadge">🔥 0天連續</div>
-  </div>
-</div>
+  <span class="pill ok" id="pill">可訓練</span>
+</header>
 
-<div class="tabs" id="mainTabs">
-  <div class="tab active" onclick="switchTab('train')">訓練</div>
-  <div class="tab" onclick="switchTab('log')">紀錄</div>
-  <div class="tab" onclick="switchTab('measure')">尺寸</div>
-  <div class="tab" onclick="switchTab('calendar')">日曆</div>
-</div>
+<main>
+  <!-- 今日 -->
+  <section class="view on" id="v-today">
+    <div id="banners"></div>
+    <div class="h2">今日流程</div>
+    <div class="flow">熱身 → 伸展 → Jelq → Kegel → Clamping（進階）→ 收尾</div>
+    <div id="cards"></div>
+    <button class="big" onclick="openCheck()">完成今日訓練・身體檢查</button>
+    <div class="h2">今日紀錄</div>
+    <div id="todayList"></div>
+  </section>
 
-<!-- ===== TRAIN VIEW ===== -->
-<div class="view active" id="view-train">
+  <!-- 紀錄 -->
+  <section class="view" id="v-log">
+    <div class="stats" id="stats"></div>
+    <div class="h2">月曆</div>
+    <div class="box">
+      <div class="calnav">
+        <button class="btn ghost" onclick="calMove(-1)">◀</button>
+        <b id="calLabel"></b>
+        <button class="btn ghost" onclick="calMove(1)">▶</button>
+      </div>
+      <div class="cal" id="cal"></div>
+      <div class="legend"><span><i style="background:#2b3a05;border:1px solid #3f5508"></i>有訓練</span><span><i style="background:var(--bad);border-radius:50%"></i>回報異常</span></div>
+    </div>
+    <div class="h2">歷史紀錄</div>
+    <div id="history"></div>
+  </section>
 
-  <!-- 熱身/收尾 -->
-  <div class="section-title">熱身 / 收尾</div>
-  <div class="exercise-card" id="card-warmup">
-    <div class="exercise-header" onclick="toggleCard('warmup')">
-      <div>
-        <div class="exercise-name">熱身 / 收尾</div>
-        <div style="font-size:0.62rem;color:var(--muted);margin-top:2px;">溫熱毛巾 5–6 分鐘</div>
+  <!-- 尺寸 -->
+  <section class="view" id="v-measure">
+    <div class="box">
+      <p class="note">建議固定條件測量（同一時段、同樣勃起程度、同一把尺），每 2–4 週一次就好；太頻繁量容易被誤差影響情緒。</p>
+      <div class="grid">
+        <div class="f"><label for="m-date">日期</label><input id="m-date" type="date"></div>
+        <div class="f"><label for="m-bpel">BPEL 長度 (cm)</label><input id="m-bpel" type="number" step="0.1" inputmode="decimal"></div>
+        <div class="f"><label for="m-nbpel">NBPEL 長度 (cm)</label><input id="m-nbpel" type="number" step="0.1" inputmode="decimal"></div>
+        <div class="f"><label for="m-eg">圍度 EG (cm)</label><input id="m-eg" type="number" step="0.1" inputmode="decimal"></div>
       </div>
-      <span class="exercise-tag warmup">WARMUP</span>
+      <div class="f" style="margin-top:8px"><label for="m-note">備註</label><input id="m-note" type="text" placeholder="測量時間、狀態…"></div>
+      <button class="btn line wide" onclick="saveMeasure()">儲存測量</button>
     </div>
-    <div class="exercise-body" id="body-warmup">
-      <div class="timer-display" id="timer-warmup" style="color:var(--accent)">05:00</div>
-      <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:8px;">
-        <span style="font-size:0.62rem;color:var(--muted)">設定時間</span>
-        <button class="btn" style="flex:0;padding:6px 12px;font-size:0.8rem;" onclick="adjustWarmupTime(-60)">−1分</button>
-        <span id="warmup-set-display" style="font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--text);min-width:40px;text-align:center;">5分</span>
-        <button class="btn" style="flex:0;padding:6px 12px;font-size:0.8rem;" onclick="adjustWarmupTime(60)">+1分</button>
-      </div>
-      <div class="timer-controls">
-        <button class="btn primary" onclick="startCountdown('warmup')">開始</button>
-        <button class="btn" onclick="pauseTimer('warmup')">暫停</button>
-        <button class="btn danger" onclick="resetCountdown('warmup')">重置</button>
-      </div>
-      <div class="input-row">
-        <div class="input-group">
-          <label>類型</label>
-          <select id="warmup-type" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:0.8rem;padding:8px 10px;width:100%;outline:none;">
-            <option>熱身</option>
-            <option>收尾</option>
-          </select>
-        </div>
-        <div class="input-group">
-          <label>時長（分鐘）</label>
-          <input type="number" id="warmup-duration" placeholder="5" min="1" max="30">
-        </div>
-      </div>
-      <div class="input-group" style="margin-bottom:8px;">
-        <label>備註</label>
-        <textarea id="warmup-note" placeholder="身體狀況、感受..."></textarea>
-      </div>
-      <button class="log-btn" onclick="logExercise('warmup')">記錄此項目</button>
-    </div>
-  </div>
+    <div class="h2">趨勢</div>
+    <div class="box chart" id="chartBpel"></div>
+    <div class="box chart" id="chartEg"></div>
+    <div class="h2">測量歷史</div>
+    <div class="box" id="measureTable"></div>
+  </section>
 
-  <!-- 伸展 -->
-  <div class="section-title">長度訓練</div>
-  <div class="exercise-card" id="card-stretch">
-    <div class="exercise-header" onclick="toggleCard('stretch')">
-      <div>
-        <div class="exercise-name">伸展 Stretching</div>
-        <div style="font-size:0.62rem;color:var(--muted);margin-top:2px;">各方向拉伸，每向10秒</div>
+  <!-- 設定 -->
+  <section class="view" id="v-set">
+    <div class="h2">預設值</div>
+    <div class="box">
+      <div class="grid">
+        <div class="f"><label for="s-warm">熱身（分鐘）</label><input id="s-warm" type="number" min="1" max="30" inputmode="numeric"></div>
+        <div class="f"><label for="s-cool">收尾（分鐘）</label><input id="s-cool" type="number" min="1" max="30" inputmode="numeric"></div>
+        <div class="f"><label for="s-max">連續幾天後提醒休息</label><input id="s-max" type="number" min="1" max="14" inputmode="numeric"></div>
       </div>
-      <span class="exercise-tag length">LENGTH</span>
+      <button class="btn line wide" style="margin-top:8px" onclick="saveSettings()">儲存設定</button>
     </div>
-    <div class="exercise-body" id="body-stretch">
-      <div class="timer-display" id="timer-stretch">00:00</div>
-      <div class="timer-controls">
-        <button class="btn primary" onclick="startTimer('stretch')">開始</button>
-        <button class="btn" onclick="pauseTimer('stretch')">暫停</button>
-        <button class="btn danger" onclick="resetTimer('stretch')">重置</button>
-      </div>
-      <div class="input-row">
-        <div class="input-group">
-          <label>組數</label>
-          <input type="number" id="stretch-sets" placeholder="3" min="1">
-        </div>
-        <div class="input-group">
-          <label>每組秒數</label>
-          <input type="number" id="stretch-secs" placeholder="10" min="5">
-        </div>
-      </div>
-      <div class="input-row">
-        <div class="input-group">
-          <label>方向</label>
-          <input type="text" id="stretch-dir" placeholder="上下左右、旋轉">
-        </div>
-        <div class="input-group">
-          <label>總時長（分鐘）</label>
-          <input type="number" id="stretch-duration" placeholder="5" min="1">
-        </div>
-      </div>
-      <div class="input-group" style="margin-bottom:8px;">
-        <label>備註 / 身體狀況</label>
-        <textarea id="stretch-note" placeholder="感受到的拉伸感、有無不適..."></textarea>
-      </div>
-      <button class="log-btn" onclick="logExercise('stretch')">記錄此項目</button>
-    </div>
-  </div>
 
-  <!-- Jelq -->
-  <div class="exercise-card" id="card-jelq">
-    <div class="exercise-header" onclick="toggleCard('jelq')">
-      <div>
-        <div class="exercise-name">Jelq</div>
-        <div style="font-size:0.62rem;color:var(--muted);margin-top:2px;">60–70% 勃起，每下2–3秒</div>
+    <div class="h2">資料備份</div>
+    <div class="box">
+      <p class="note">資料只存在這支手機的這個瀏覽器裡，不會上傳。iPhone 的 Safari 若一段時間沒開網站可能會清掉資料，建議「加入主畫面」使用，並定期匯出備份。</p>
+      <div class="row">
+        <button class="btn" onclick="exportData()">匯出備份</button>
+        <button class="btn" onclick="document.getElementById('imp').click()">匯入備份</button>
       </div>
-      <span class="exercise-tag girth">GIRTH+LENGTH</span>
+      <input type="file" id="imp" accept="application/json,.json" style="display:none" onchange="importData(this)">
+      <button class="btn bad wide" onclick="clearAll()">清除全部資料</button>
     </div>
-    <div class="exercise-body" id="body-jelq">
-      <div class="timer-display" id="timer-jelq">00:00</div>
-      <div class="timer-controls">
-        <button class="btn primary" onclick="startTimer('jelq')">開始</button>
-        <button class="btn" onclick="pauseTimer('jelq')">暫停</button>
-        <button class="btn danger" onclick="resetTimer('jelq')">重置</button>
-      </div>
-      <div class="input-row">
-        <div class="input-group">
-          <label>組數</label>
-          <input type="number" id="jelq-sets" placeholder="3" min="1">
-        </div>
-        <div class="input-group">
-          <label>每組次數</label>
-          <input type="number" id="jelq-reps" placeholder="50" min="1">
-        </div>
-      </div>
-      <div class="input-row">
-        <div class="input-group">
-          <label>類型</label>
-          <select id="jelq-type" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:0.8rem;padding:8px 10px;width:100%;outline:none;">
-            <option>Wet Jelq</option>
-            <option>V Jelq</option>
-            <option>Side Jelq</option>
-          </select>
-        </div>
-        <div class="input-group">
-          <label>總時長（分鐘）</label>
-          <input type="number" id="jelq-duration" placeholder="15" min="1">
-        </div>
-      </div>
-      <div class="input-group" style="margin-bottom:8px;">
-        <label>備註 / 身體狀況</label>
-        <textarea id="jelq-note" placeholder="勃起狀態、有無不適、感受..."></textarea>
-      </div>
-      <button class="log-btn" onclick="logExercise('jelq')">記錄此項目</button>
-    </div>
-  </div>
 
-  <!-- Kegel -->
-  <div class="section-title">健康訓練</div>
-  <div class="exercise-card" id="card-kegel">
-    <div class="exercise-header" onclick="toggleCard('kegel')">
-      <div>
-        <div class="exercise-name">Kegel</div>
-        <div style="font-size:0.62rem;color:var(--muted);margin-top:2px;">收縮骨盆底肌，強化勃起品質</div>
-      </div>
-      <span class="exercise-tag health">HEALTH</span>
+    <div class="h2">停練與就醫訊號</div>
+    <div class="box">
+      <p class="note warn">出現下列任何一項，當下停止。標「需就醫」的，或幾天內沒有消退的，請給泌尿科看，不要只靠論壇比對。</p>
+      <ul class="safe">
+        <li>疼痛、刺痛（需就醫）</li>
+        <li>麻木、感覺變鈍（需就醫）</li>
+        <li>顏色明顯變深、發紫、發黑或冰冷（需就醫）</li>
+        <li>勃起時彎曲、摸到硬塊（需就醫）</li>
+        <li>紅點、瘀點、瘀青：代表力道過大，停練到完全消退</li>
+        <li>腫脹久久不消、硬度下降或晨勃變少：休息並降低強度</li>
+      </ul>
     </div>
-    <div class="exercise-body" id="body-kegel">
-      <div class="timer-display" id="timer-kegel">00:00</div>
-      <div class="timer-controls">
-        <button class="btn primary" onclick="startTimer('kegel')">開始</button>
-        <button class="btn" onclick="pauseTimer('kegel')">暫停</button>
-        <button class="btn danger" onclick="resetTimer('kegel')">重置</button>
-      </div>
-      <div class="input-row">
-        <div class="input-group">
-          <label>組數</label>
-          <input type="number" id="kegel-sets" placeholder="3" min="1">
-        </div>
-        <div class="input-group">
-          <label>每組次數</label>
-          <input type="number" id="kegel-reps" placeholder="10" min="1">
-        </div>
-      </div>
-      <div class="input-row">
-        <div class="input-group">
-          <label>收縮秒數</label>
-          <input type="number" id="kegel-hold" placeholder="3" min="1">
-        </div>
-        <div class="input-group">
-          <label>類型</label>
-          <select id="kegel-type" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:0.8rem;padding:8px 10px;width:100%;outline:none;">
-            <option>一般 Kegel</option>
-            <option>Reverse Kegel</option>
-          </select>
-        </div>
-      </div>
-      <div class="input-group" style="margin-bottom:8px;">
-        <label>備註</label>
-        <textarea id="kegel-note" placeholder="感受、強度..."></textarea>
-      </div>
-      <button class="log-btn" onclick="logExercise('kegel')">記錄此項目</button>
-    </div>
-  </div>
+  </section>
+</main>
 
-  <!-- Clamping -->
-  <div class="section-title">進階訓練</div>
-  <div style="background:#1a0f00;border:1px solid #4a2800;padding:10px 14px;margin-bottom:10px;font-size:0.65rem;color:#fa4;line-height:1.7;letter-spacing:0.02em;">
-    ⚠️ Clamping 為進階技術，需數月 PE 基礎。若感到麻木、疼痛、變色請立即停止。
-  </div>
-  <div class="exercise-card" id="card-clamp">
-    <div class="exercise-header" onclick="toggleCard('clamp')">
-      <div>
-        <div class="exercise-name">Clamping</div>
-        <div style="font-size:0.62rem;color:var(--muted);margin-top:2px;">限制血液流出，擴張圍度</div>
-      </div>
-      <span class="exercise-tag girth">GIRTH</span>
-    </div>
-    <div class="exercise-body" id="body-clamp">
-      <div class="timer-display" id="timer-clamp">00:00</div>
-      <div class="timer-controls">
-        <button class="btn primary" onclick="startTimer('clamp')">開始</button>
-        <button class="btn" onclick="pauseTimer('clamp')">暫停</button>
-        <button class="btn danger" onclick="resetTimer('clamp')">重置</button>
-      </div>
-      <div class="input-row">
-        <div class="input-group">
-          <label>組數</label>
-          <input type="number" id="clamp-sets" placeholder="2" min="1">
-        </div>
-        <div class="input-group">
-          <label>每組分鐘</label>
-          <input type="number" id="clamp-mins" placeholder="10" min="1" max="15">
-        </div>
-      </div>
-      <div class="input-group" style="margin-bottom:8px;">
-        <label>備註 / 身體反應</label>
-        <textarea id="clamp-note" placeholder="顏色正常？有無疼痛麻木？血流感受..."></textarea>
-      </div>
-      <button class="log-btn" onclick="logExercise('clamp')">記錄此項目</button>
-    </div>
-  </div>
+<nav>
+  <button class="on" data-v="today" onclick="go('today')"><b>◎</b>今日</button>
+  <button data-v="log" onclick="go('log')"><b>▦</b>紀錄</button>
+  <button data-v="measure" onclick="go('measure')"><b>⟂</b>尺寸</button>
+  <button data-v="set" onclick="go('set')"><b>⚙</b>設定</button>
+</nav>
 
-</div>
-
-<!-- ===== LOG VIEW ===== -->
-<div class="view" id="view-log">
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-value" id="stat-total">0</div>
-      <div class="stat-label">總訓練次數</div>
+<div class="modal" id="checkModal" onclick="if(event.target===this)closeCheck()">
+  <div class="sheet">
+    <h3>身體檢查</h3>
+    <p class="note">誠實勾選目前的狀況。沒有異常就直接按「一切正常」。</p>
+    <div id="flagOpts"></div>
+    <div class="f"><label for="chk-note">補充說明</label><textarea id="chk-note" placeholder="位置、程度、何時開始…"></textarea></div>
+    <div class="result" id="chkResult"></div>
+    <div class="row" id="chkBtns">
+      <button class="btn" onclick="submitCheck(true)">一切正常</button>
+      <button class="btn pri" onclick="submitCheck(false)">送出勾選</button>
     </div>
-    <div class="stat-card">
-      <div class="stat-value" id="stat-streak">0</div>
-      <div class="stat-label">連續天數</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-value" id="stat-thisweek">0</div>
-      <div class="stat-label">本週次數</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-value" id="stat-thismonth">0</div>
-      <div class="stat-label">本月次數</div>
-    </div>
-  </div>
-
-  <div class="section-title">所有紀錄</div>
-  <div id="logList">
-    <div class="empty-state">還沒有訓練記錄<br>回到「訓練」頁面開始第一次記錄</div>
+    <button class="btn ghost wide" onclick="closeCheck()">關閉</button>
   </div>
 </div>
 
-<!-- ===== MEASURE VIEW ===== -->
-<div class="view" id="view-measure">
-  <div class="section-title">新增測量</div>
-  <div class="measurement-form">
-    <div class="input-row">
-      <div class="input-group">
-        <label>日期</label>
-        <input type="date" id="m-date">
-      </div>
-      <div class="input-group">
-        <label>BPEL 長度（cm）</label>
-        <input type="number" id="m-bpel" placeholder="0.0" step="0.1" min="0">
-      </div>
-    </div>
-    <div class="input-row">
-      <div class="input-group">
-        <label>NBPEL 長度（cm）</label>
-        <input type="number" id="m-nbpel" placeholder="0.0" step="0.1" min="0">
-      </div>
-      <div class="input-group">
-        <label>圍度 EG（cm）</label>
-        <input type="number" id="m-eg" placeholder="0.0" step="0.1" min="0">
-      </div>
-    </div>
-    <div class="input-group" style="margin-bottom:10px;">
-      <label>備註</label>
-      <input type="text" id="m-note" placeholder="測量時間、狀態...">
-    </div>
-    <button class="log-btn" onclick="saveMeasurement()">儲存測量</button>
-  </div>
-
-  <div class="section-title">測量歷史</div>
-  <div class="measurement-history">
-    <div class="measurement-row header">
-      <div>日期</div>
-      <div>BPEL</div>
-      <div>NBPEL</div>
-      <div>EG</div>
-      <div></div>
-    </div>
-    <div id="measureList">
-      <div class="empty-state">尚無測量記錄</div>
-    </div>
-  </div>
-</div>
-
-<!-- ===== CALENDAR VIEW ===== -->
-<div class="view" id="view-calendar">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-    <button class="btn" style="flex:0;padding:8px 14px;" onclick="changeMonth(-1)">◀</button>
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:0.1em;" id="calMonthLabel"></div>
-    <button class="btn" style="flex:0;padding:8px 14px;" onclick="changeMonth(1)">▶</button>
-  </div>
-  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px;">
-    <div class="cal-header-day">日</div>
-    <div class="cal-header-day">一</div>
-    <div class="cal-header-day">二</div>
-    <div class="cal-header-day">三</div>
-    <div class="cal-header-day">四</div>
-    <div class="cal-header-day">五</div>
-    <div class="cal-header-day">六</div>
-  </div>
-  <div class="calendar-grid" id="calendarGrid"></div>
-
-  <div class="section-title">本月統計</div>
-  <div class="stats-grid" id="calStats"></div>
-</div>
-
-<!-- Toast -->
 <div class="toast" id="toast"></div>
 
 <script>
-// ===== STATE =====
-let logs = JSON.parse(localStorage.getItem('pe-logs') || '[]');
-let measurements = JSON.parse(localStorage.getItem('pe-measurements') || '[]');
-let timers = {};
-let calMonth = new Date();
+/* ========== 工具 ========== */
+const KEY = 'pet_v2';
+const $ = s => document.querySelector(s);
+const pad = n => String(n).padStart(2, '0');
+const dk = d => { d = new Date(d); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+const today = () => dk(new Date());
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = s => { s = Math.max(0, Math.ceil(s)); return pad(Math.floor(s / 60)) + ':' + pad(s % 60); };
+const mins = s => Math.round((s || 0) / 60);
+const val = id => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
+const numOr = (id, d) => { const n = parseFloat(val(id)); return isNaN(n) ? d : n; };
 
-// ===== INIT =====
-document.getElementById('todayDate').textContent = new Date().toLocaleDateString('zh-TW', {year:'numeric',month:'long',day:'numeric'});
-document.getElementById('m-date').value = new Date().toISOString().split('T')[0];
-updateAll();
+/* ========== 資料 ========== */
+const DEF = () => ({ v: 2, entries: [], checks: [], measures: [], settings: { warm: 300, cool: 300, maxConsec: 5 } });
+let db = load();
 
-// ===== TABS =====
-function switchTab(name) {
-  document.querySelectorAll('.tab').forEach((t,i) => {
-    const names = ['train','log','measure','calendar'];
-    t.classList.toggle('active', names[i] === name);
-  });
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.getElementById('view-'+name).classList.add('active');
-  if (name === 'log') renderLogs();
-  if (name === 'measure') renderMeasurements();
-  if (name === 'calendar') renderCalendar();
-}
-
-// ===== CARD TOGGLE =====
-function toggleCard(id) {
-  const body = document.getElementById('body-'+id);
-  const card = document.getElementById('card-'+id);
-  const isOpen = body.classList.contains('open');
-  document.querySelectorAll('.exercise-body').forEach(b => b.classList.remove('open'));
-  document.querySelectorAll('.exercise-card').forEach(c => c.classList.remove('active-card'));
-  if (!isOpen) {
-    body.classList.add('open');
-    card.classList.add('active-card');
-  }
-}
-
-// ===== COUNTDOWN (warmup) =====
-let warmupSetSeconds = 300; // default 5 min
-
-function adjustWarmupTime(delta) {
-  warmupSetSeconds = Math.max(60, Math.min(1800, warmupSetSeconds + delta));
-  document.getElementById('warmup-set-display').textContent = Math.round(warmupSetSeconds/60) + '分';
-  if (!timers['warmup'] || !timers['warmup'].interval) {
-    timers['warmup'] = { seconds: warmupSetSeconds, interval: null, countdown: true };
-    updateCountdownDisplay('warmup');
-  }
-}
-
-function startCountdown(id) {
-  if (!timers[id] || timers[id].seconds === 0) {
-    timers[id] = { seconds: warmupSetSeconds, interval: null, countdown: true };
-  }
-  if (timers[id].interval) return;
-  timers[id].interval = setInterval(() => {
-    timers[id].seconds--;
-    updateCountdownDisplay(id);
-    if (timers[id].seconds <= 0) {
-      clearInterval(timers[id].interval);
-      timers[id].interval = null;
-      document.getElementById('timer-'+id).textContent = '00:00';
-      document.getElementById('timer-'+id).style.color = 'var(--accent2)';
-      showToast('⏱ 時間到！');
+function load() {
+  const def = DEF();
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) {
+      const d = JSON.parse(raw);
+      return { ...def, ...d, settings: { ...def.settings, ...(d.settings || {}) } };
     }
-  }, 1000);
+    // 從舊版 (pe-logs / pe-measurements) 搬資料
+    const ol = JSON.parse(localStorage.getItem('pe-logs') || '[]');
+    const om = JSON.parse(localStorage.getItem('pe-measurements') || '[]');
+    def.entries = ol.map(l => ({
+      id: l.id, at: l.date, note: l.note || '', detail: l.display || '',
+      type: l.type === 'warmup' ? (String(l.display || '').startsWith('收尾') ? 'cool' : 'warm') : l.type,
+      dur: (parseFloat(l.duration) || 0) * 60
+    }));
+    def.measures = om.map(m => ({ id: m.id, date: m.date, bpel: m.bpel, nbpel: m.nbpel, eg: m.eg, note: m.note || '' }));
+    if (ol.length || om.length) { db = def; save(); }
+  } catch (e) {}
+  return def;
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(db)); return true; }
+  catch (e) { toast('⚠️ 無法儲存，請匯出備份'); return false; }
 }
 
-function resetCountdown(id) {
-  pauseTimer(id);
-  timers[id] = { seconds: warmupSetSeconds, interval: null, countdown: true };
-  document.getElementById('timer-'+id).style.color = 'var(--accent)';
-  updateCountdownDisplay(id);
-}
+/* ========== 項目定義 ========== */
+const EX = {
+  warm:    { name: '熱身',          desc: '溫熱毛巾・倒數',        tag: 'WARM UP',      color: 'var(--warn)' },
+  stretch: { name: '伸展 Stretching', desc: '多方向拉伸・正計時',    tag: 'LENGTH',       color: 'var(--blue)' },
+  jelq:    { name: 'Jelq',          desc: '半勃起、力道輕、動作慢',  tag: 'GIRTH·LENGTH', color: 'var(--org)' },
+  kegel:   { name: 'Kegel',         desc: '收縮／放鬆 引導計時',    tag: 'HEALTH',       color: 'var(--ok)' },
+  clamp:   { name: 'Clamping',      desc: '進階・每組倒數＋響鈴',   tag: 'ADVANCED',     color: 'var(--bad)' },
+  cool:    { name: '收尾',          desc: '溫熱毛巾・倒數',        tag: 'COOL DOWN',    color: 'var(--warn)' },
+};
+const ORDER = ['warm', 'stretch', 'jelq', 'kegel', 'clamp', 'cool'];
+const HARD = ['stretch', 'jelq', 'clamp']; // 算作「訓練日」、受休息提醒影響
 
-function updateCountdownDisplay(id) {
-  const s = timers[id]?.seconds || 0;
-  const m = Math.floor(s/60).toString().padStart(2,'0');
-  const sec = (s%60).toString().padStart(2,'0');
-  const el = document.getElementById('timer-'+id);
-  el.textContent = m+':'+sec;
-  // Turn red when under 30 seconds
-  if (s <= 30 && s > 0) el.style.color = 'var(--danger)';
-  else el.style.color = 'var(--accent)';
-}
+const FLAGS = [
+  ['pain',  '疼痛／刺痛', 2],
+  ['numb',  '麻木或感覺變鈍', 2],
+  ['color', '顏色變深、發紫發黑或冰冷', 2],
+  ['bend',  '彎曲或摸到硬塊', 2],
+  ['spots', '紅點／瘀點／瘀青', 1],
+  ['swell', '腫脹久久不消', 1],
+  ['soft',  '硬度下降／晨勃變少', 1],
+];
+const FL = Object.fromEntries(FLAGS.map(f => [f[0], f]));
 
-// ===== TIMER (count up) =====
-function startTimer(id) {
-  if (!timers[id]) timers[id] = { seconds: 0, interval: null };
-  if (timers[id].interval) return;
-  timers[id].interval = setInterval(() => {
-    timers[id].seconds++;
-    updateTimerDisplay(id);
-  }, 1000);
+/* ========== 卡片 ========== */
+function fld(id, label, ph = '', type = 'number') {
+  return `<div class="f"><label for="${id}">${label}</label><input id="${id}" type="${type}" ${type === 'number' ? 'inputmode="numeric" min="0"' : ''} placeholder="${ph}"></div>`;
 }
-function pauseTimer(id) {
-  if (timers[id]?.interval) {
-    clearInterval(timers[id].interval);
-    timers[id].interval = null;
+const ctrls = k => `<div class="row"><button class="btn pri" id="b-${k}" onclick="tog('${k}')">開始</button><button class="btn" onclick="rst('${k}')">重置</button></div>`;
+const noteF = (k, ph) => `<div class="f"><label for="${k}-note">備註／身體狀況</label><textarea id="${k}-note" placeholder="${ph}"></textarea></div>`;
+const logB = k => `<button class="btn line wide" onclick="logEx('${k}')">記錄此項目</button>`;
+
+function bodyHTML(k) {
+  switch (k) {
+    case 'warm': case 'cool':
+      return `<div class="timer num" id="t-${k}"></div><div class="phase" id="p-${k}">倒數</div>
+        <div class="stepper"><button class="btn ghost" onclick="adj('${k}',-60)">−1 分</button><span class="num" id="set-${k}"></span><button class="btn ghost" onclick="adj('${k}',60)">+1 分</button></div>
+        ${ctrls(k)}${noteF(k, '溫度、感受…')}${logB(k)}`;
+    case 'stretch':
+      return `<div class="timer num" id="t-${k}"></div><div class="phase" id="p-${k}">正計時</div>${ctrls(k)}
+        <div class="grid">${fld('stretch-sets', '組數')}${fld('stretch-secs', '每組秒數')}</div>
+        ${fld('stretch-dir', '方向', '上下左右、旋轉…', 'text')}
+        ${noteF(k, '拉伸感、有無不適…')}${logB(k)}`;
+    case 'jelq':
+      return `<div class="timer num" id="t-${k}"></div><div class="phase" id="p-${k}">正計時</div>${ctrls(k)}
+        <div class="grid">
+          <div class="f"><label for="jelq-type">類型</label><select id="jelq-type"><option>Wet Jelq</option><option>Dry Jelq</option><option>V Jelq</option><option>Side Jelq</option></select></div>
+          ${fld('jelq-sets', '組數')}
+        </div>
+        <div class="grid">${fld('jelq-reps', '每組次數')}<div></div></div>
+        ${noteF(k, '勃起程度、力道、有無紅點…')}${logB(k)}`;
+    case 'kegel':
+      return `<div class="timer num" id="t-${k}">00:05</div><div class="phase" id="p-${k}">按開始，跟著提示收縮／放鬆</div>
+        <div class="row"><button class="btn pri" id="b-${k}" onclick="kTog()">開始一組</button></div>
+        <div class="grid">${fld('kegel-hold', '收縮秒數', '5')}${fld('kegel-rest', '放鬆秒數', '5')}</div>
+        <div class="grid">${fld('kegel-reps', '每組次數', '10')}${fld('kegel-sets', '已完成組數', '0')}</div>
+        ${noteF(k, '感受、強度…')}${logB(k)}`;
+    case 'clamp':
+      return `<p class="note warn" style="margin-top:12px">進階技術，需要數月基礎。每組倒數結束會響鈴＋震動。期間顏色變深、冰冷、麻木、疼痛，立刻取下。</p>
+        <div class="timer num" id="t-${k}">--:--</div><div class="phase" id="p-${k}">先輸入每組分鐘數</div>
+        <div class="grid">${fld('clamp-min', '每組分鐘')}${fld('clamp-sets', '已完成組數', '0')}</div>
+        ${ctrls(k)}${noteF(k, '顏色、溫度、感覺…')}${logB(k)}`;
   }
 }
-function resetTimer(id) {
-  pauseTimer(id);
-  if (timers[id]) timers[id].seconds = 0;
-  updateTimerDisplay(id);
-}
-function updateTimerDisplay(id) {
-  const s = timers[id]?.seconds || 0;
-  const m = Math.floor(s/60).toString().padStart(2,'0');
-  const sec = (s%60).toString().padStart(2,'0');
-  document.getElementById('timer-'+id).textContent = m+':'+sec;
-}
 
-// ===== LOG EXERCISE =====
-function logExercise(type) {
-  const now = new Date();
-  const entry = {
-    id: Date.now(),
-    type,
-    date: now.toISOString(),
-    dateStr: now.toLocaleDateString('zh-TW'),
-  };
-
-  const timerSecs = timers[type]?.seconds || 0;
-
-  if (type === 'warmup') {
-    entry.subtype = document.getElementById('warmup-type').value;
-    entry.duration = document.getElementById('warmup-duration').value || Math.round(timerSecs/60);
-    entry.note = document.getElementById('warmup-note').value;
-    entry.display = `${entry.subtype} · ${entry.duration} 分鐘`;
-  } else if (type === 'stretch') {
-    entry.sets = document.getElementById('stretch-sets').value;
-    entry.secs = document.getElementById('stretch-secs').value;
-    entry.dir = document.getElementById('stretch-dir').value;
-    entry.duration = document.getElementById('stretch-duration').value || Math.round(timerSecs/60);
-    entry.note = document.getElementById('stretch-note').value;
-    entry.display = `${entry.sets||'?'}組 × ${entry.secs||'?'}秒 · ${entry.dir||'多方向'} · ${entry.duration}分`;
-  } else if (type === 'jelq') {
-    entry.sets = document.getElementById('jelq-sets').value;
-    entry.reps = document.getElementById('jelq-reps').value;
-    entry.subtype = document.getElementById('jelq-type').value;
-    entry.duration = document.getElementById('jelq-duration').value || Math.round(timerSecs/60);
-    entry.note = document.getElementById('jelq-note').value;
-    entry.display = `${entry.subtype} · ${entry.sets||'?'}組 × ${entry.reps||'?'}下 · ${entry.duration}分`;
-  } else if (type === 'kegel') {
-    entry.sets = document.getElementById('kegel-sets').value;
-    entry.reps = document.getElementById('kegel-reps').value;
-    entry.hold = document.getElementById('kegel-hold').value;
-    entry.subtype = document.getElementById('kegel-type').value;
-    entry.note = document.getElementById('kegel-note').value;
-    entry.display = `${entry.subtype} · ${entry.sets||'?'}組 × ${entry.reps||'?'}下 · 收縮${entry.hold||'?'}秒`;
-  } else if (type === 'clamp') {
-    entry.sets = document.getElementById('clamp-sets').value;
-    entry.mins = document.getElementById('clamp-mins').value;
-    entry.note = document.getElementById('clamp-note').value;
-    entry.duration = (parseInt(entry.sets||1) * parseInt(entry.mins||10));
-    entry.display = `${entry.sets||'?'}組 × ${entry.mins||'?'}分鐘`;
-  }
-
-  logs.unshift(entry);
-  localStorage.setItem('pe-logs', JSON.stringify(logs));
-  resetTimer(type);
-  updateAll();
-  showToast('✓ 已記錄');
-}
-
-// ===== MEASUREMENT =====
-function saveMeasurement() {
-  const m = {
-    id: Date.now(),
-    date: document.getElementById('m-date').value,
-    bpel: parseFloat(document.getElementById('m-bpel').value) || null,
-    nbpel: parseFloat(document.getElementById('m-nbpel').value) || null,
-    eg: parseFloat(document.getElementById('m-eg').value) || null,
-    note: document.getElementById('m-note').value,
-  };
-  if (!m.bpel && !m.nbpel && !m.eg) { showToast('請輸入至少一項數據'); return; }
-  measurements.unshift(m);
-  localStorage.setItem('pe-measurements', JSON.stringify(measurements));
-  renderMeasurements();
-  showToast('✓ 測量已儲存');
-}
-
-function deleteMeasurement(id) {
-  measurements = measurements.filter(m => m.id !== id);
-  localStorage.setItem('pe-measurements', JSON.stringify(measurements));
-  renderMeasurements();
-}
-
-function renderMeasurements() {
-  const container = document.getElementById('measureList');
-  if (!measurements.length) {
-    container.innerHTML = '<div class="empty-state">尚無測量記錄</div>';
-    return;
-  }
-  container.innerHTML = measurements.map((m, i) => {
-    const prev = measurements[i+1];
-    const bpelChange = (prev?.bpel && m.bpel) ? (m.bpel - prev.bpel).toFixed(1) : null;
-    const egChange = (prev?.eg && m.eg) ? (m.eg - prev.eg).toFixed(1) : null;
-    const bpelClass = bpelChange > 0 ? 'change-positive' : bpelChange < 0 ? 'change-negative' : '';
-    const egClass = egChange > 0 ? 'change-positive' : egChange < 0 ? 'change-negative' : '';
-    return `<div class="measurement-row">
-      <div style="font-size:0.65rem">${m.date}</div>
-      <div class="${bpelClass}">${m.bpel ? m.bpel+'cm'+(bpelChange!==null?`<span style="font-size:0.58rem"> ${bpelChange>0?'+':''}${bpelChange}</span>`:'') : '—'}</div>
-      <div>${m.nbpel ? m.nbpel+'cm' : '—'}</div>
-      <div class="${egClass}">${m.eg ? m.eg+'cm'+(egChange!==null?`<span style="font-size:0.58rem"> ${egChange>0?'+':''}${egChange}</span>`:'') : '—'}</div>
-      <button class="delete-btn" onclick="deleteMeasurement(${m.id})">✕</button>
+function renderCards() {
+  $('#cards').innerHTML = ORDER.map(k => {
+    const e = EX[k];
+    return `<div class="card" id="card-${k}">
+      <div class="ch" onclick="toggleCard('${k}')">
+        <div><div class="ct"><span class="run-dot"></span>${e.name}</div><div class="cd">${e.desc}</div></div>
+        <span class="tag" style="color:${e.color}">${e.tag}</span>
+      </div>
+      <div class="cb">${bodyHTML(k)}</div>
     </div>`;
   }).join('');
+  ['warm', 'cool'].forEach(k => { tm(k).target = db.settings[k]; paint(k); });
+  ['stretch', 'jelq'].forEach(paint);
+}
+function toggleCard(k) {
+  const c = $('#card-' + k), was = c.classList.contains('open');
+  document.querySelectorAll('.card.open').forEach(x => x.classList.remove('open'));
+  if (!was) c.classList.add('open');
 }
 
-// ===== RENDER LOGS =====
-const typeNames = { warmup:'熱身/收尾', stretch:'伸展', jelq:'Jelq', kegel:'Kegel', clamp:'Clamping' };
-const typeColors = { warmup:'#fa4', stretch:'#4af', jelq:'var(--accent2)', kegel:'#8f8', clamp:'var(--accent)' };
+/* ========== 計時器（以時間戳計算，鎖螢幕也準） ========== */
+const T = {};
+const DOWN = ['warm', 'cool', 'clamp'];
+function tm(k) { return T[k] || (T[k] = { base: 0, at: null, target: 0, done: false }); }
+function el(k) { const t = tm(k); return t.base + (t.at ? (Date.now() - t.at) / 1000 : 0); }
+let gateOK = {};
 
-function renderLogs() {
-  const container = document.getElementById('logList');
-  if (!logs.length) {
-    container.innerHTML = '<div class="empty-state">還沒有訓練記錄<br>回到「訓練」頁面開始第一次記錄</div>';
-    return;
+function tog(k) { tm(k).at ? pause(k) : start(k); }
+function start(k) {
+  unlockAudio();
+  if (!gate(k)) return;
+  const t = tm(k);
+  if (k === 'clamp') {
+    const m = parseFloat(val('clamp-min'));
+    if (!(m > 0)) { toast('請先輸入每組分鐘數'); return; }
+    if (t.done || !t.target || (t.base === 0)) { t.target = m * 60; t.base = 0; t.done = false; }
   }
-  container.innerHTML = logs.map(l => `
-    <div class="log-item" style="border-left-color:${typeColors[l.type]}">
-      <div class="log-item-header">
-        <span class="log-item-name">${typeNames[l.type]}</span>
-        <span class="log-item-date">${l.dateStr} <button class="delete-btn" onclick="deleteLog(${l.id})">✕</button></span>
-      </div>
-      <div class="log-item-details">${l.display || ''}</div>
-      ${l.note ? `<div class="log-item-note">${l.note}</div>` : ''}
-    </div>
-  `).join('');
+  if (DOWN.includes(k) && t.done) { t.base = 0; t.done = false; }
+  t.at = Date.now();
+  wake(true); paint(k);
 }
-
-function deleteLog(id) {
-  logs = logs.filter(l => l.id !== id);
-  localStorage.setItem('pe-logs', JSON.stringify(logs));
-  renderLogs();
-  updateAll();
+function pause(k) { const t = tm(k); t.base = el(k); t.at = null; paint(k); }
+function rst(k) {
+  const t = tm(k); t.base = 0; t.at = null; t.done = false;
+  if (k === 'clamp') t.target = 0;
+  paint(k);
 }
-
-// ===== CALENDAR =====
-function renderCalendar() {
-  const y = calMonth.getFullYear(), m = calMonth.getMonth();
-  document.getElementById('calMonthLabel').textContent = `${y}年 ${m+1}月`;
-
-  const logDates = new Set(logs.map(l => l.date.split('T')[0]));
-  const today = new Date().toISOString().split('T')[0];
-  const firstDay = new Date(y, m, 1).getDay();
-  const daysInMonth = new Date(y, m+1, 0).getDate();
-
-  let html = '';
-  for (let i = 0; i < firstDay; i++) html += '<div class="cal-day"></div>';
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const hasLog = logDates.has(dateStr);
-    const isToday = dateStr === today;
-    html += `<div class="cal-day${hasLog?' has-log':''}${isToday?' today':''}">${d}</div>`;
+function adj(k, d) {
+  db.settings[k] = Math.min(1800, Math.max(60, db.settings[k] + d)); save();
+  const t = tm(k); if (!t.at) { t.target = db.settings[k]; t.base = 0; t.done = false; }
+  paint(k);
+}
+function finish(k) {
+  const t = tm(k); t.base = t.target; t.at = null; t.done = true;
+  alarm();
+  if (k === 'clamp') {
+    const s = document.getElementById('clamp-sets'); s.value = (parseInt(s.value) || 0) + 1;
+    toast('⏱ 這組結束，取下並檢查顏色');
+  } else toast('⏱ 時間到');
+  paint(k);
+}
+function paint(k) {
+  const d = document.getElementById('t-' + k); if (!d) return;
+  const t = tm(k), b = document.getElementById('b-' + k), p = document.getElementById('p-' + k);
+  const card = document.getElementById('card-' + k);
+  card && card.classList.toggle('running', !!t.at);
+  if (DOWN.includes(k)) {
+    if (k === 'clamp' && !t.target) { d.textContent = '--:--'; d.className = 'timer num'; if (p) p.textContent = '先輸入每組分鐘數'; }
+    else {
+      const left = t.target - el(k);
+      d.textContent = fmt(left);
+      d.className = 'timer num' + (t.done ? ' done' : (left <= 30 && t.at ? ' low' : ''));
+      if (p) p.textContent = t.done ? '完成' : (t.at ? '進行中' : '倒數');
+    }
+    const s = document.getElementById('set-' + k); if (s) s.textContent = mins(db.settings[k]) + ' 分';
+  } else {
+    d.textContent = fmt(el(k)); d.className = 'timer num';
   }
-  document.getElementById('calendarGrid').innerHTML = html;
-
-  // Month stats
-  const monthLogs = logs.filter(l => {
-    const d = new Date(l.date);
-    return d.getFullYear()===y && d.getMonth()===m;
-  });
-  const activeDays = new Set(monthLogs.map(l=>l.date.split('T')[0])).size;
-  document.getElementById('calStats').innerHTML = `
-    <div class="stat-card"><div class="stat-value">${activeDays}</div><div class="stat-label">活躍天數</div></div>
-    <div class="stat-card"><div class="stat-value">${monthLogs.length}</div><div class="stat-label">總記錄筆數</div></div>
-  `;
+  if (b) b.textContent = t.at ? '暫停' : (t.base > 0 && !t.done ? '繼續' : '開始');
 }
 
-function changeMonth(dir) {
-  calMonth.setMonth(calMonth.getMonth() + dir);
-  renderCalendar();
+/* ========== Kegel 引導 ========== */
+const K = { run: false, phase: 'hold', rep: 0, at: 0 };
+function kParams() { return { h: numOr('kegel-hold', 5), r: numOr('kegel-rest', 5), n: numOr('kegel-reps', 10) }; }
+function kTog() {
+  unlockAudio();
+  if (K.run) { K.run = false; kPaint('已停止，本組不計'); return; }
+  Object.assign(K, { run: true, phase: 'hold', rep: 0, at: Date.now() });
+  beep(660, 120); wake(true); kPaint();
 }
-
-// ===== STATS =====
-function calcStreak() {
-  const dates = [...new Set(logs.map(l => l.date.split('T')[0]))].sort().reverse();
-  if (!dates.length) return 0;
-  let streak = 0;
-  let check = new Date(); check.setHours(0,0,0,0);
-  for (const d of dates) {
-    const dd = new Date(d); dd.setHours(0,0,0,0);
-    const diff = Math.round((check - dd) / 86400000);
-    if (diff === 0 || diff === 1) { streak++; check = dd; }
-    else break;
+function kTick() {
+  if (!K.run) return;
+  const { h, r, n } = kParams();
+  const dur = K.phase === 'hold' ? h : r;
+  if ((Date.now() - K.at) / 1000 >= dur) {
+    K.at = Date.now();
+    if (K.phase === 'hold') { K.phase = 'rest'; beep(440, 120); }
+    else {
+      K.rep++;
+      if (K.rep >= n) {
+        K.run = false;
+        const s = document.getElementById('kegel-sets'); s.value = (parseInt(s.value) || 0) + 1;
+        alarm(); kPaint('完成一組 ✓'); return;
+      }
+      K.phase = 'hold'; beep(660, 120);
+    }
   }
-  return streak;
+  kPaint();
+}
+function kPaint(msg) {
+  const { h, r, n } = kParams();
+  const d = document.getElementById('t-kegel'), p = document.getElementById('p-kegel'), b = document.getElementById('b-kegel');
+  if (!d) return;
+  document.getElementById('card-kegel').classList.toggle('running', K.run);
+  if (K.run) {
+    const dur = K.phase === 'hold' ? h : r;
+    d.textContent = fmt(dur - (Date.now() - K.at) / 1000);
+    p.textContent = (K.phase === 'hold' ? '收縮' : '放鬆') + `　${K.rep + 1} / ${n}`;
+    p.className = 'phase' + (K.phase === 'hold' ? ' hold' : '');
+    b.textContent = '停止';
+  } else {
+    d.textContent = fmt(h); p.className = 'phase';
+    p.textContent = msg || '按開始，跟著提示收縮／放鬆';
+    b.textContent = '開始一組';
+  }
 }
 
-function updateAll() {
-  const streak = calcStreak();
-  document.getElementById('streakBadge').textContent = `🔥 ${streak}天連續`;
-  document.getElementById('totalSessions').textContent = `累計 ${logs.length} 筆記錄`;
+/* ========== 主迴圈 ========== */
+setInterval(() => {
+  let any = K.run;
+  for (const k in T) {
+    const t = T[k];
+    if (!t.at) continue;
+    any = true;
+    if (DOWN.includes(k) && el(k) >= t.target) finish(k); else paint(k);
+  }
+  kTick();
+  if (!any) wake(false);
+}, 250);
 
-  // Stats page
-  document.getElementById('stat-total').textContent = logs.length;
-  document.getElementById('stat-streak').textContent = streak;
+/* ========== 聲音／震動／螢幕常亮 ========== */
+let AC = null;
+function unlockAudio() {
+  try { if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); } catch (e) {}
+}
+function beep(f = 880, ms = 180, n = 1) {
+  if (!AC) return;
+  try {
+    for (let i = 0; i < n; i++) {
+      const o = AC.createOscillator(), g = AC.createGain();
+      o.frequency.value = f; o.connect(g); g.connect(AC.destination);
+      const t = AC.currentTime + i * (ms / 1000 + 0.12);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.3, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + ms / 1000);
+      o.start(t); o.stop(t + ms / 1000 + 0.03);
+    }
+  } catch (e) {}
+}
+function alarm() { beep(880, 220, 3); try { navigator.vibrate && navigator.vibrate([200, 100, 200, 100, 400]); } catch (e) {} }
+let WL = null;
+async function wake(on) {
+  try {
+    if (on && !WL && 'wakeLock' in navigator) { WL = await navigator.wakeLock.request('screen'); WL.addEventListener('release', () => { WL = null; }); }
+    else if (!on && WL) { await WL.release(); WL = null; }
+  } catch (e) {}
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && (K.run || Object.values(T).some(t => t.at))) wake(true);
+});
 
-  const now = new Date();
-  const weekAgo = new Date(now - 7*86400000);
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  document.getElementById('stat-thisweek').textContent = logs.filter(l => new Date(l.date) >= weekAgo).length;
-  document.getElementById('stat-thismonth').textContent = logs.filter(l => new Date(l.date) >= monthStart).length;
+/* ========== 狀態判斷 ========== */
+function trainDays() { return new Set(db.entries.filter(e => HARD.includes(e.type)).map(e => dk(e.at))); }
+function consec() {
+  const s = trainDays(); const d = new Date(); d.setHours(12, 0, 0, 0);
+  if (!s.has(dk(d))) d.setDate(d.getDate() - 1);
+  let n = 0; while (s.has(dk(d))) { n++; d.setDate(d.getDate() - 1); }
+  return n;
+}
+function lastCheck() { return [...db.checks].sort((a, b) => (a.at < b.at ? 1 : -1))[0]; }
+function status() {
+  const last = lastCheck(), td = trainDays().has(today()), n = consec(), max = db.settings.maxConsec;
+  const r = { sev: 0, last, consec: n, trainedToday: td, rest: !td && n >= max, restTomorrow: td && n >= max };
+  if (last && last.flags.length) {
+    r.sev = Math.max(...last.flags.map(f => (FL[f] ? FL[f][2] : 1)));
+    r.flagText = last.flags.map(f => (FL[f] ? FL[f][1] : f)).join('、');
+  }
+  r.checkedToday = db.checks.some(c => c.date === today());
+  return r;
+}
+function gate(k) {
+  if (!HARD.includes(k) || gateOK[today()]) return true;
+  const s = status(); let msg = '';
+  if (s.sev) msg = `上次身體檢查回報：${s.flagText}\n\n建議等症狀完全消退再訓練${s.sev >= 2 ? '，並先給泌尿科檢查' : ''}。\n\n仍要開始？`;
+  else if (s.rest) msg = `已連續訓練 ${s.consec} 天，今天建議休息。\n\n仍要開始？`;
+  if (!msg) return true;
+  if (confirm(msg)) { gateOK[today()] = true; return true; }
+  return false;
 }
 
-// ===== TOAST =====
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2000);
+/* ========== 今日頁 ========== */
+function renderToday() {
+  const s = status(); let h = '';
+  if (s.sev >= 2) h += `<div class="banner bad"><b>停練・建議就醫</b><br>${esc(s.last.date)} 回報：${esc(s.flagText)}。這類症狀不要自己判斷，請盡快讓泌尿科檢查，確認沒問題前不要繼續訓練。<br><button onclick="clearFlags()">已看過醫生／症狀完全消失</button></div>`;
+  else if (s.sev === 1) h += `<div class="banner warn"><b>休息恢復中</b><br>${esc(s.last.date)} 回報：${esc(s.flagText)}。停練到完全消退，恢復時降低力道和時間。幾天沒退就去看醫生。<br><button onclick="clearFlags()">症狀已完全消退</button></div>`;
+  if (s.rest) h += `<div class="banner warn">已連續訓練 ${s.consec} 天。社群常見做法是 5 練 2 休，今天建議休息（Kegel 不受影響）。</div>`;
+  else if (s.restTomorrow) h += `<div class="banner info">今天是連續第 ${s.consec} 天，明天起建議休息。</div>`;
+  if (s.trainedToday && !s.checkedToday) h += `<div class="banner info">今天練完了嗎？記得按最下面做一次身體檢查。</div>`;
+  $('#banners').innerHTML = h;
+
+  const p = $('#pill');
+  if (s.sev >= 2) { p.className = 'pill bad'; p.textContent = '停練・建議就醫'; }
+  else if (s.sev === 1) { p.className = 'pill warn'; p.textContent = '休息恢復中'; }
+  else if (s.rest) { p.className = 'pill warn'; p.textContent = '建議休息'; }
+  else { p.className = 'pill ok'; p.textContent = s.trainedToday ? '今日已訓練' : '可訓練'; }
+
+  const list = db.entries.filter(e => dk(e.at) === today()).sort((a, b) => (a.at < b.at ? 1 : -1));
+  const checks = db.checks.filter(c => c.date === today());
+  $('#todayList').innerHTML = (checks.map(chkHTML).join('') + list.map(itemHTML).join('')) || '<div class="empty">今天還沒有紀錄</div>';
 }
+function itemHTML(e) {
+  const x = EX[e.type] || { name: e.type, color: 'var(--mu)' };
+  const t = new Date(e.at);
+  return `<div class="item" style="border-left-color:${x.color}">
+    <div class="ih"><span class="in">${esc(x.name)}</span><span class="it">${pad(t.getHours())}:${pad(t.getMinutes())}<button class="x" onclick="delEntry(${e.id})" aria-label="刪除">✕</button></span></div>
+    ${e.detail ? `<div class="id">${esc(e.detail)}</div>` : ''}
+    ${e.note ? `<div class="inote">${esc(e.note)}</div>` : ''}
+  </div>`;
+}
+function chkHTML(c) {
+  if (!c.flags.length) return `<div class="chk ok">✓ 身體檢查：${c.cleared ? '症狀已消退' : '一切正常'}${c.note ? '・' + esc(c.note) : ''}<button class="x" onclick="delCheck(${c.id})">✕</button></div>`;
+  const sev = Math.max(...c.flags.map(f => (FL[f] ? FL[f][2] : 1)));
+  return `<div class="chk ${sev >= 2 ? 'bad' : 'warn'}">⚠ 身體檢查：${esc(c.flags.map(f => (FL[f] ? FL[f][1] : f)).join('、'))}${c.note ? '・' + esc(c.note) : ''}<button class="x" onclick="delCheck(${c.id})">✕</button></div>`;
+}
+
+/* ========== 記錄項目 ========== */
+function logEx(k) {
+  let dur = Math.round(el(k)), detail = '';
+  const parts = a => a.filter(Boolean).join(' · ');
+  if (k === 'warm' || k === 'cool') {
+    if (!dur) dur = db.settings[k];
+    detail = mins(dur) + ' 分鐘';
+  } else if (k === 'stretch') {
+    const s = val('stretch-sets'), sec = val('stretch-secs');
+    detail = parts([s && `${s} 組`, sec && `每組 ${sec} 秒`, val('stretch-dir'), mins(dur) && `${mins(dur)} 分`]);
+  } else if (k === 'jelq') {
+    const s = val('jelq-sets'), r = val('jelq-reps');
+    detail = parts([val('jelq-type'), s && `${s} 組`, r && `每組 ${r} 下`, mins(dur) && `${mins(dur)} 分`]);
+  } else if (k === 'kegel') {
+    const { h, r, n } = kParams(), s = parseInt(val('kegel-sets')) || 0;
+    if (!s) { toast('還沒有完成任何一組'); return; }
+    dur = s * n * (h + r);
+    detail = `${s} 組 × ${n} 下 · 收縮 ${h} 秒`;
+  } else if (k === 'clamp') {
+    const s = parseInt(val('clamp-sets')) || 0, m = parseFloat(val('clamp-min')) || 0;
+    if (!s) { toast('還沒有完成任何一組'); return; }
+    dur = s * m * 60;
+    detail = `${s} 組 × ${m} 分鐘`;
+  }
+  if (!detail && !val(k + '-note')) { toast('請輸入內容或使用計時器'); return; }
+  db.entries.push({ id: Date.now(), type: k, at: new Date().toISOString(), dur, detail, note: val(k + '-note') });
+  if (!save()) return;
+  // 清空
+  rst(k);
+  const n = document.getElementById(k + '-note'); if (n) n.value = '';
+  ['stretch-sets','stretch-secs','stretch-dir','jelq-sets','jelq-reps'].forEach(id => { if (id.startsWith(k)) document.getElementById(id).value = ''; });
+  if (k === 'kegel') { document.getElementById('kegel-sets').value = ''; K.run = false; kPaint(); }
+  if (k === 'clamp') document.getElementById('clamp-sets').value = '';
+  toast('✓ 已記錄');
+  renderToday();
+}
+function delEntry(id) { if (!confirm('刪除這筆紀錄？')) return; db.entries = db.entries.filter(e => e.id !== id); save(); renderAll(); }
+function delCheck(id) { if (!confirm('刪除這筆身體檢查？')) return; db.checks = db.checks.filter(c => c.id !== id); save(); renderAll(); }
+
+/* ========== 身體檢查 ========== */
+function openCheck() {
+  $('#flagOpts').innerHTML = FLAGS.map(f => `<label class="opt${f[2] >= 2 ? ' sev2' : ''}"><input type="checkbox" value="${f[0]}"><span>${f[1]}</span></label>`).join('');
+  $('#chk-note').value = '';
+  $('#chkResult').style.display = 'none';
+  $('#chkBtns').style.display = 'flex';
+  $('#checkModal').classList.add('on');
+}
+function closeCheck() { $('#checkModal').classList.remove('on'); }
+function submitCheck(allOk) {
+  const flags = allOk ? [] : [...document.querySelectorAll('#flagOpts input:checked')].map(i => i.value);
+  if (!allOk && !flags.length) { toast('沒有勾選，若無異常請按「一切正常」'); return; }
+  db.checks.push({ id: Date.now(), date: today(), at: new Date().toISOString(), flags, note: val('chk-note') });
+  save(); renderAll();
+  const r = $('#chkResult');
+  if (!flags.length) { closeCheck(); toast('✓ 已記錄，好好休息'); return; }
+  const sev = Math.max(...flags.map(f => FL[f][2]));
+  r.style.display = 'block';
+  r.className = 'result banner ' + (sev >= 2 ? 'bad' : 'warn');
+  r.innerHTML = sev >= 2
+    ? '<b>建議停止訓練並就醫。</b><br>疼痛、麻木、變色、彎曲或硬塊可能代表血管、神經或組織受傷，越早檢查越好。不要等它自己好，也不要只靠網路判斷。'
+    : '<b>建議停練，等完全消退。</b><br>這通常代表力道或時間超過組織能承受的程度。恢復後降低強度；如果幾天內沒有消退，請給泌尿科看。';
+  $('#chkBtns').style.display = 'none';
+}
+function clearFlags() {
+  if (!confirm('確認症狀已完全消失？')) return;
+  db.checks.push({ id: Date.now(), date: today(), at: new Date().toISOString(), flags: [], note: '', cleared: true });
+  save(); renderAll();
+}
+
+/* ========== 紀錄頁 ========== */
+let calM = new Date(); calM.setDate(1);
+function calMove(d) { calM.setMonth(calM.getMonth() + d); renderCal(); }
+function renderLog() {
+  const now = new Date(), wk = new Date(now); wk.setDate(now.getDate() - 6); const wkKey = dk(wk);
+  const days = [...trainDays()];
+  const wkDays = days.filter(d => d >= wkKey).length;
+  const wkMin = mins(db.entries.filter(e => dk(e.at) >= wkKey).reduce((a, e) => a + (e.dur || 0), 0));
+  const mKey = today().slice(0, 7);
+  const mDays = days.filter(d => d.startsWith(mKey)).length;
+  $('#stats').innerHTML = [
+    [wkDays, '近 7 天訓練天數'], [wkMin, '近 7 天總分鐘'], [mDays, '本月訓練天數'], [consec(), '目前連續天數']
+  ].map(([v, l]) => `<div class="stat"><div class="sv num">${v}</div><div class="sl">${l}</div></div>`).join('');
+  renderCal();
+
+  const byDay = {};
+  db.entries.forEach(e => { (byDay[dk(e.at)] ||= { e: [], c: [] }).e.push(e); });
+  db.checks.forEach(c => { (byDay[c.date] ||= { e: [], c: [] }).c.push(c); });
+  const keys = Object.keys(byDay).sort().reverse();
+  $('#history').innerHTML = keys.length ? keys.map(k => {
+    const g = byDay[k]; g.e.sort((a, b) => (a.at < b.at ? 1 : -1));
+    const tot = mins(g.e.reduce((a, e) => a + (e.dur || 0), 0));
+    return `<div class="day"><div class="dh"><span>${k}</span><span>${tot ? tot + ' 分鐘' : ''}</span></div>${g.c.map(chkHTML).join('')}${g.e.map(itemHTML).join('')}</div>`;
+  }).join('') : '<div class="empty">還沒有紀錄</div>';
+}
+function renderCal() {
+  const y = calM.getFullYear(), m = calM.getMonth();
+  $('#calLabel').textContent = `${y} 年 ${m + 1} 月`;
+  const tr = trainDays();
+  const fl = new Set(db.checks.filter(c => c.flags.length).map(c => c.date));
+  const first = new Date(y, m, 1).getDay(), n = new Date(y, m + 1, 0).getDate(), td = today();
+  let h = '日一二三四五六'.split('').map(w => `<div class="cw">${w}</div>`).join('');
+  for (let i = 0; i < first; i++) h += '<div class="cday e"></div>';
+  for (let d = 1; d <= n; d++) {
+    const key = `${y}-${pad(m + 1)}-${pad(d)}`;
+    h += `<div class="cday${tr.has(key) ? ' tr' : ''}${key === td ? ' td' : ''}${fl.has(key) ? ' fl' : ''}">${d}</div>`;
+  }
+  $('#cal').innerHTML = h;
+}
+
+/* ========== 尺寸頁 ========== */
+function saveMeasure() {
+  const m = {
+    id: Date.now(), date: val('m-date') || today(),
+    bpel: parseFloat(val('m-bpel')) || null, nbpel: parseFloat(val('m-nbpel')) || null,
+    eg: parseFloat(val('m-eg')) || null, note: val('m-note')
+  };
+  if (!m.bpel && !m.nbpel && !m.eg) { toast('請至少輸入一項'); return; }
+  db.measures.push(m); save();
+  ['m-bpel', 'm-nbpel', 'm-eg', 'm-note'].forEach(id => document.getElementById(id).value = '');
+  toast('✓ 已儲存'); renderMeasure();
+}
+function delMeasure(id) { if (!confirm('刪除這筆測量？')) return; db.measures = db.measures.filter(m => m.id !== id); save(); renderMeasure(); }
+function chart(key, label, color) {
+  const pts = db.measures.filter(m => m[key]).sort((a, b) => (a.date < b.date ? -1 : 1));
+  if (pts.length < 2) return `<div class="sl" style="margin-bottom:6px">${label}</div><div class="empty" style="padding:14px">至少兩筆資料才會顯示趨勢</div>`;
+  const W = 320, H = 120, P = 22;
+  const vs = pts.map(p => p[key]); let lo = Math.min(...vs), hi = Math.max(...vs);
+  if (hi - lo < 0.5) { const c = (hi + lo) / 2; lo = c - 0.25; hi = c + 0.25; }
+  const x = i => P + i * (W - 2 * P) / (pts.length - 1);
+  const yv = v => H - P - (v - lo) / (hi - lo) * (H - 2 * P);
+  const line = pts.map((p, i) => `${x(i).toFixed(1)},${yv(p[key]).toFixed(1)}`).join(' ');
+  const dots = pts.map((p, i) => `<circle cx="${x(i).toFixed(1)}" cy="${yv(p[key]).toFixed(1)}" r="3" fill="${color}"/>`).join('');
+  const diff = (vs[vs.length - 1] - vs[0]).toFixed(1);
+  return `<div class="dh" style="margin-bottom:4px"><span>${label}</span><span class="num">${diff > 0 ? '+' : ''}${diff} cm（自首次）</span></div>
+    <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${label}趨勢">
+      <line x1="${P}" y1="${H - P}" x2="${W - P}" y2="${H - P}" stroke="#2a2a2e"/>
+      <text x="2" y="${yv(hi) + 4}" fill="#8a8a92" font-size="10">${hi.toFixed(1)}</text>
+      <text x="2" y="${yv(lo) + 4}" fill="#8a8a92" font-size="10">${lo.toFixed(1)}</text>
+      <polyline points="${line}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round"/>${dots}
+      <text x="${P}" y="${H - 4}" fill="#8a8a92" font-size="10">${pts[0].date.slice(5)}</text>
+      <text x="${W - P}" y="${H - 4}" fill="#8a8a92" font-size="10" text-anchor="end">${pts[pts.length - 1].date.slice(5)}</text>
+    </svg>`;
+}
+function renderMeasure() {
+  if (!val('m-date')) document.getElementById('m-date').value = today();
+  $('#chartBpel').innerHTML = chart('bpel', 'BPEL 長度', '#5ab0ff');
+  $('#chartEg').innerHTML = chart('eg', 'EG 圍度', '#ff7a3d');
+  const ms = [...db.measures].sort((a, b) => (a.date < b.date ? 1 : -1));
+  if (!ms.length) { $('#measureTable').innerHTML = '<div class="empty">尚無測量紀錄</div>'; return; }
+  const cell = (m, i, key) => {
+    if (!m[key]) return '—';
+    const prev = ms.slice(i + 1).find(p => p[key]);
+    if (!prev) return m[key];
+    const d = (m[key] - prev[key]).toFixed(1);
+    return `${m[key]} <span class="${d > 0 ? 'up' : d < 0 ? 'down' : ''}">${d > 0 ? '+' : ''}${d != 0 ? d : ''}</span>`;
+  };
+  $('#measureTable').innerHTML = `<table class="mt num"><tr><th>日期</th><th>BPEL</th><th>NBPEL</th><th>EG</th><th></th></tr>${
+    ms.map((m, i) => `<tr><td>${m.date.slice(2)}</td><td>${cell(m, i, 'bpel')}</td><td>${cell(m, i, 'nbpel')}</td><td>${cell(m, i, 'eg')}</td><td><button class="x" onclick="delMeasure(${m.id})">✕</button></td></tr>`).join('')
+  }</table>`;
+}
+
+/* ========== 設定頁 ========== */
+function renderSet() {
+  document.getElementById('s-warm').value = mins(db.settings.warm);
+  document.getElementById('s-cool').value = mins(db.settings.cool);
+  document.getElementById('s-max').value = db.settings.maxConsec;
+}
+function saveSettings() {
+  const c = (v, lo, hi, d) => { v = parseInt(v); return isNaN(v) ? d : Math.min(hi, Math.max(lo, v)); };
+  db.settings.warm = c(val('s-warm'), 1, 30, 5) * 60;
+  db.settings.cool = c(val('s-cool'), 1, 30, 5) * 60;
+  db.settings.maxConsec = c(val('s-max'), 1, 14, 5);
+  save();
+  ['warm', 'cool'].forEach(k => { const t = tm(k); if (!t.at) { t.target = db.settings[k]; t.base = 0; t.done = false; } paint(k); });
+  renderSet(); renderToday(); toast('✓ 設定已儲存');
+}
+function exportData() {
+  const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = `training-backup-${today()}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+function importData(inp) {
+  const f = inp.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const d = JSON.parse(r.result);
+      if (!Array.isArray(d.entries) || !Array.isArray(d.measures)) throw 0;
+      if (!confirm(`備份內有 ${d.entries.length} 筆訓練、${d.measures.length} 筆測量。\n會覆蓋目前資料，確定匯入？`)) return;
+      db = { ...DEF(), ...d, checks: Array.isArray(d.checks) ? d.checks : [], settings: { ...DEF().settings, ...(d.settings || {}) } };
+      save(); renderCards(); renderAll(); toast('✓ 匯入完成');
+    } catch (e) { toast('檔案格式不正確'); }
+    inp.value = '';
+  };
+  r.readAsText(f);
+}
+function clearAll() {
+  if (!confirm('確定清除全部資料？建議先匯出備份。')) return;
+  if (!confirm('再確認一次：這個動作無法復原。')) return;
+  db = DEF(); save(); renderCards(); renderAll(); toast('已清除');
+}
+
+/* ========== 導覽 ========== */
+function go(v) {
+  document.querySelectorAll('.view').forEach(x => x.classList.toggle('on', x.id === 'v-' + v));
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+  window.scrollTo(0, 0);
+  if (v === 'log') renderLog(); if (v === 'measure') renderMeasure(); if (v === 'set') renderSet(); if (v === 'today') renderToday();
+}
+function renderAll() { renderToday(); renderLog(); renderMeasure(); renderSet(); }
+
+let toastT;
+function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2200); }
+
+/* ========== 啟動 ========== */
+$('#hdrDate').textContent = new Date().toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
+renderCards(); kPaint(); renderAll();
+// 跨日自動更新
+let lastDay = today();
+setInterval(() => { if (today() !== lastDay) { lastDay = today(); gateOK = {}; renderAll(); } }, 60000);
 </script>
 </body>
 </html>
